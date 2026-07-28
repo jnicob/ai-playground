@@ -16,15 +16,15 @@ adaptador mock).
 
 ## Comandos
 
-| Acción | Comando |
-| --- | --- |
-| Lint | `pnpm run lint` |
-| Format (check) | `pnpm run format` |
-| Format (fix) | `pnpm run format:fix` |
-| Typecheck | `pnpm run typecheck` |
-| Tests | `pnpm run test` |
-| Build | `pnpm run build` |
-| Dev (web) | `pnpm run dev` |
+| Acción         | Comando               |
+| -------------- | --------------------- |
+| Lint           | `pnpm run lint`       |
+| Format (check) | `pnpm run format`     |
+| Format (fix)   | `pnpm run format:fix` |
+| Typecheck      | `pnpm run typecheck`  |
+| Tests          | `pnpm run test`       |
+| Build          | `pnpm run build`      |
+| Dev (web)      | `pnpm run dev`        |
 
 ## Hard rules
 
@@ -33,6 +33,9 @@ adaptador mock).
   dependen de `core`, nunca al revés.
 - Colores solo por tokens semánticos: CSS vars + `data-theme`. Nunca colores hardcodeados.
 - Cero dependencias privadas o de empresa; solo OSS público o código propio.
+- Clean-room: este repo es un producto standalone; cero referencias a empleadores, clientes
+  o productos internos de terceros en código, docs o commits. Solo OSS público o código
+  propio.
 - Nunca secretos en el repo ni en el bundle. Las API keys de usuario viajan
   navegador → API del proveedor (o pass-through por header a `apps/api`); nunca se
   persisten server-side ni se commitean.
