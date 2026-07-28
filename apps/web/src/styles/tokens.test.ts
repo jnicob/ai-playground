@@ -1,3 +1,4 @@
+/// <reference types="node" />
 // @vitest-environment node
 //
 // Bajo el entorno jsdom por defecto, Vite 8 aplica su transform de
