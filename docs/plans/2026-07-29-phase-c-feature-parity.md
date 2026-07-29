@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C5 completadas. La rama está apilada
+**Status:** En curso en `feat/phase-c-continuation`; C1–C6 completadas. La rama está apilada
 sobre `feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
@@ -213,13 +213,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Aceptar POST síncrono `200` y asíncrono `202`.
-- [ ] Polling de vídeo abortable: intervalo inicial recomendado por API, backoff ante 429,
+- [x] Aceptar POST síncrono `200` y asíncrono `202`.
+- [x] Polling de vídeo abortable: intervalo inicial recomendado por API, backoff ante 429,
       tope 30 s y timeout total 10 min.
-- [ ] No degradar a mock errores fatales ni una operación que ya pudo generar coste.
-- [ ] Descargar vídeo con header de key a Blob y entregar lifecycle explícito al consumidor.
-- [ ] Registrar traza real sin headers sensibles, base64 ni URLs firmadas.
-- [ ] Probar aborto durante POST, polling y descarga.
+- [x] No degradar a mock errores fatales ni una operación que ya pudo generar coste.
+- [x] Descargar vídeo con header de key a Blob y entregar lifecycle explícito al consumidor.
+- [x] Registrar traza real sin headers sensibles, base64 ni URLs firmadas.
+- [x] Probar aborto durante POST, polling y descarga.
 
 **Commit:** `feat: soporta ejecución síncrona y operaciones largas`
 

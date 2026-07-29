@@ -30,6 +30,22 @@ export class PlatformError extends Error {
   }
 }
 
+/**
+ * La API ya aceptó una operación que puede generar coste. Aunque el error sea transitorio,
+ * degradar a mock ocultaría el trabajo live y podría provocar una segunda generación.
+ */
+export class CommittedOperationError extends PlatformError {
+  readonly operationCommitted = true;
+
+  constructor(code: ApiErrorCode, message: string) {
+    super(code, message);
+    this.name = 'CommittedOperationError';
+  }
+}
+
 export function isFatalPlatformError(error: unknown): boolean {
-  return error instanceof PlatformError && FATAL_CODES.includes(error.code);
+  return (
+    error instanceof CommittedOperationError ||
+    (error instanceof PlatformError && FATAL_CODES.includes(error.code))
+  );
 }

@@ -69,6 +69,7 @@ export function createMockAdapter(options: { latencyMs?: number } = {}): Generat
         return {
           kind: 'video',
           ...MOCK_VIDEO_CATALOG[request.aspectRatio],
+          dispose: () => undefined,
           ...meta,
         };
       }

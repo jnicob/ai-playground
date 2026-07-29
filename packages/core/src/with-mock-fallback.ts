@@ -1,5 +1,5 @@
 import { isFatalPlatformError } from './errors';
-import type { GenerationService } from './types';
+import type { GenerationRequest, GenerationService } from './types';
 
 const DEFAULT_TIMEOUT_MS = 20_000;
 
@@ -9,14 +9,15 @@ const DEFAULT_TIMEOUT_MS = 20_000;
 export function withMockFallback(
   live: GenerationService,
   mock: GenerationService,
-  timeoutMs: number = DEFAULT_TIMEOUT_MS,
+  timeoutMs: number | ((request: GenerationRequest) => number) = DEFAULT_TIMEOUT_MS,
 ): GenerationService {
   return {
     async generate(request, signal) {
       const controller = new AbortController();
       const onCallerAbort = () => controller.abort();
       signal?.addEventListener('abort', onCallerAbort, { once: true });
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      const timeout = typeof timeoutMs === 'function' ? timeoutMs(request) : timeoutMs;
+      const timer = setTimeout(() => controller.abort(), timeout);
       try {
         return await live.generate(request, controller.signal);
       } catch (error) {
