@@ -1,3 +1,4 @@
+import { isFatalPlatformError } from './errors';
 import type { GenerationService } from './types';
 
 const DEFAULT_TIMEOUT_MS = 20_000;
@@ -20,6 +21,7 @@ export function withMockFallback(
         return await live.generate(request, controller.signal);
       } catch (error) {
         if (signal?.aborted) throw error;
+        if (isFatalPlatformError(error)) throw error;
         const fallback = await mock.generate(request, signal);
         return { ...fallback, degraded: true };
       } finally {
