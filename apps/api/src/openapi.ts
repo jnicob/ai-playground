@@ -1,9 +1,9 @@
-import { API_ERROR_CODES, API_KEY_HEADER, SERVICES } from '@ai-playground/core';
+import { API_ERROR_CODES, API_KEY_HEADER } from '@ai-playground/core';
 
 /** Proveedores expuestos por HTTP; mock corre client-side y no tiene conector server-side. */
 const HTTP_PROVIDERS = ['pollinations', 'google'] as const;
 
-const taskOutput = {
+const imageOutput = {
   type: 'object',
   required: ['kind', 'url'],
   properties: {
@@ -13,6 +13,18 @@ const taskOutput = {
     height: { type: 'integer' },
   },
 } as const;
+
+const imagePairOutput = {
+  type: 'object',
+  required: ['kind', 'before_url', 'after_url'],
+  properties: {
+    kind: { type: 'string', enum: ['image-pair'] },
+    before_url: { type: 'string' },
+    after_url: { type: 'string' },
+  },
+} as const;
+
+const taskOutput = { oneOf: [imageOutput, imagePairOutput] } as const;
 
 const errorBody = {
   type: 'object',
@@ -60,7 +72,7 @@ export const openApiDocument = {
             name: 'service',
             in: 'path',
             required: true,
-            schema: { type: 'string', enum: SERVICES.map((s) => s.id) },
+            schema: { type: 'string', enum: ['generate-image', 'edit-image'] },
           },
           keyHeader,
         ],
@@ -80,12 +92,41 @@ export const openApiDocument = {
                     enum: ['square_1_1', 'widescreen_16_9', 'vertical_9_16'],
                   },
                   seed: { type: 'integer', minimum: 0, maximum: 999999 },
+                  source_image: {
+                    description: 'Required for edit-image. PNG, JPEG or WebP; maximum 10 MiB.',
+                    type: 'object',
+                    required: ['mime_type', 'data'],
+                    properties: {
+                      mime_type: {
+                        type: 'string',
+                        enum: ['image/png', 'image/jpeg', 'image/webp'],
+                      },
+                      data: { type: 'string', contentEncoding: 'base64' },
+                    },
+                  },
                 },
               },
             },
           },
         },
         responses: {
+          '200': {
+            description: 'Synchronous edit completed',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['status', 'provider', 'elapsed_ms', 'output'],
+                  properties: {
+                    status: { type: 'string', enum: ['COMPLETED'] },
+                    provider: { type: 'string', enum: ['google'] },
+                    elapsed_ms: { type: 'integer' },
+                    output: imagePairOutput,
+                  },
+                },
+              },
+            },
+          },
           '202': {
             description: 'Task accepted',
             content: {
@@ -108,6 +149,22 @@ export const openApiDocument = {
           },
           '428': {
             description: 'Provider API key required',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '401': {
+            description: 'Invalid provider API key',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '422': {
+            description: 'Content blocked by the provider',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '429': {
+            description: 'Provider rate limit reached',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '502': {
+            description: 'Invalid or failed provider response',
             content: { 'application/json': { schema: errorBody } },
           },
         },

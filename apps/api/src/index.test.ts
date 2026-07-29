@@ -27,6 +27,13 @@ const post = (payload: unknown, headers: Record<string, string> = {}) =>
     body: JSON.stringify(payload),
   });
 
+const postEdit = (payload: unknown, headers: Record<string, string> = {}) =>
+  app.request('/v1/services/edit-image', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: JSON.stringify(payload),
+  });
+
 afterEach(() => vi.unstubAllGlobals());
 
 describe('api', () => {
@@ -166,7 +173,11 @@ describe('GET /v1/tasks/:taskId', () => {
         new Response(
           JSON.stringify({
             candidates: [
-              { content: { parts: [{ inlineData: { mimeType: 'image/png', data: 'QUJD' } }] } },
+              {
+                content: {
+                  parts: [{ inlineData: { mimeType: 'image/png', data: 'QUJD' } }],
+                },
+              },
             ],
           }),
           { status: 200, headers: { 'content-type': 'application/json' } },
@@ -218,6 +229,67 @@ describe('GET /v1/tasks/:taskId', () => {
     });
     expect(res.status).toBe(422);
     expect(await res.json()).toMatchObject({ error: { code: 'content_blocked' } });
+  });
+});
+
+describe('POST /v1/services/edit-image', () => {
+  const sourceData = btoa(String.fromCharCode(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a));
+  const editBody = {
+    provider: 'google',
+    prompt: 'make it blue',
+    model: 'gemini-3.1-flash-lite-image',
+    aspect_ratio: 'square_1_1',
+    seed: 7,
+    source_image: { mime_type: 'image/png', data: sourceData },
+  };
+
+  it('ejecuta síncrono y devuelve 200 COMPLETED sin task_id', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              candidates: [
+                {
+                  content: { parts: [{ inlineData: { mimeType: 'image/png', data: sourceData } }] },
+                },
+              ],
+            }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          ),
+      ),
+    );
+
+    const res = await postEdit(editBody, { [API_KEY_HEADER]: 'secret-key' });
+    const raw = await res.text();
+    const responseBody = JSON.parse(raw);
+    expect({ status: res.status, body: responseBody }).toMatchObject({
+      status: 200,
+      body: {
+        status: 'COMPLETED',
+        provider: 'google',
+        output: { kind: 'image-pair' },
+      },
+    });
+    expect(responseBody).not.toHaveProperty('task_id');
+    expect(raw).not.toContain('secret-key');
+  });
+
+  it('rechaza upload inválido y falta de key antes de llamar al proveedor', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect((await postEdit(editBody)).status).toBe(428);
+    expect(
+      (
+        await postEdit(
+          { ...editBody, source_image: { mime_type: 'image/jpeg', data: sourceData } },
+          { [API_KEY_HEADER]: 'k' },
+        )
+      ).status,
+    ).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 
@@ -295,5 +367,35 @@ describe('CORS y OpenAPI', () => {
     const spec = (await res.json()) as OpenApiDoc;
     const description = spec.paths['/v1/services/{service}'].post.responses['400'].description;
     expect(description).toMatch(/unsupported_provider/i);
+  });
+
+  it('documenta edit-image síncrono y su source_image', async () => {
+    const spec = (await (await app.request('/openapi.json')).json()) as {
+      paths: {
+        '/v1/services/{service}': {
+          post: {
+            parameters: { name: string; schema: { enum?: string[] } }[];
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    properties: { source_image?: { properties: Record<string, unknown> } };
+                  };
+                };
+              };
+            };
+            responses: Record<string, unknown>;
+          };
+        };
+      };
+    };
+    const operation = spec.paths['/v1/services/{service}'].post;
+    expect(
+      operation.parameters.find((parameter) => parameter.name === 'service')?.schema.enum,
+    ).toContain('edit-image');
+    expect(
+      operation.requestBody.content['application/json'].schema.properties.source_image?.properties,
+    ).toHaveProperty('mime_type');
+    expect(operation.responses).toHaveProperty('200');
   });
 });

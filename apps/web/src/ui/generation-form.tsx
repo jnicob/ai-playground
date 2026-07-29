@@ -2,18 +2,19 @@ import { useState, type FormEvent } from 'react';
 import { useI18n } from '@/i18n/i18n';
 import {
   ASPECT_RATIOS,
+  modelsFor,
   type AspectRatio,
-  type GenerationRequest,
+  type GenerateImageRequest,
   type ProviderDefinition,
   type ServiceDefinition,
 } from '@ai-playground/core';
 
 type Props = {
-  service: ServiceDefinition;
+  service: ServiceDefinition<'generate-image'>;
   provider: ProviderDefinition;
   busy: boolean;
   disabled?: boolean;
-  onGenerate: (request: GenerationRequest) => void;
+  onGenerate: (request: GenerateImageRequest) => void;
 };
 
 const MAX_SEED = 999_999;
@@ -21,7 +22,7 @@ export const randomSeed = () => Math.floor(Math.random() * (MAX_SEED + 1));
 
 export function GenerationForm({ service, provider, busy, disabled, onGenerate }: Props) {
   const { t } = useI18n();
-  const models = provider.models[service.id] ?? [];
+  const models = modelsFor(provider.id, service.id);
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState(models[0] ?? '');
   const validModel = models.includes(model) ? model : (models[0] ?? '');

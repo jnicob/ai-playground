@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** Planificada el 2026-07-29; implementación pendiente.
+**Status:** En curso en `feat/phase-c`; C1–C4 completadas.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -102,14 +102,14 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Convertir `GenerationRequest` en unión discriminada por `service`:
+- [x] Convertir `GenerationRequest` en unión discriminada por `service`:
       `generate-image`, `edit-image` y `generate-video`.
-- [ ] Añadir `sourceImage` solo al dominio efímero de edición; nunca al payload serializable.
-- [ ] Modelar resultados `image`, `image-pair` y `video` con schemas Zod estrictos.
-- [ ] Modelar respuesta POST como unión `200 COMPLETED | 202 IN_PROGRESS`.
-- [ ] Crear `task_id` v2 para `{ kind: "operation", service, provider, operation_name }`.
-- [ ] Mantener decode de v1 para las URLs/tareas existentes y rechazar versiones desconocidas.
-- [ ] Limitar longitud y patrón de `operation_name`; probar Unicode, corrupción, exceso de
+- [x] Añadir `sourceImage` solo al dominio efímero de edición; nunca al payload serializable.
+- [x] Modelar resultados `image`, `image-pair` y `video` con schemas Zod estrictos.
+- [x] Modelar respuesta POST como unión `200 COMPLETED | 202 IN_PROGRESS`.
+- [x] Crear `task_id` v2 para `{ kind: "operation", service, provider, operation_name }`.
+- [x] Mantener decode de v1 para las URLs/tareas existentes y rechazar versiones desconocidas.
+- [x] Limitar longitud y patrón de `operation_name`; probar Unicode, corrupción, exceso de
       tamaño y ausencia de secretos.
 
 **Commit:** `feat: amplía contratos para edición y vídeo`
@@ -124,11 +124,11 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Declarar compatibilidad modelo × servicio × proveedor, sin combinaciones imposibles.
-- [ ] Añadir metadatos de aspecto, duración, resolución, auth y coste estimado.
-- [ ] Incluir `pricingVerifiedAt` y evitar descubrir modelos desde endpoints inconsistentes.
-- [ ] Hacer que la opción inicial de vídeo sea Lite, 4 s y 720p.
-- [ ] Añadir resultados mock propios para las dos capacidades nuevas.
+- [x] Declarar compatibilidad modelo × servicio × proveedor, sin combinaciones imposibles.
+- [x] Añadir metadatos de aspecto, duración, resolución, auth y coste estimado.
+- [x] Incluir `pricingVerifiedAt` y evitar descubrir modelos desde endpoints inconsistentes.
+- [x] Hacer que la opción inicial de vídeo sea Lite, 4 s y 720p.
+- [x] Añadir resultados mock propios para las dos capacidades nuevas.
 
 **Commit:** `feat: registra modelos de edición y vídeo`
 
@@ -145,12 +145,12 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Crear una única función que construya método, path, headers y body de cada servicio.
-- [ ] Reutilizarla desde adaptador y generador de snippets para impedir divergencias.
-- [ ] Generar cURL, `fetch` y Python `requests`, incluidos polling y descarga cuando proceda.
-- [ ] Usar placeholders para key e imagen; probar que una key y un base64 centinela jamás
+- [x] Crear una única función que construya método, path, headers y body de cada servicio.
+- [x] Reutilizarla desde adaptador y generador de snippets para impedir divergencias.
+- [x] Generar cURL, `fetch` y Python `requests`, incluidos polling y descarga cuando proceda.
+- [x] Usar placeholders para key e imagen; probar que una key y un base64 centinela jamás
       aparecen en el texto generado.
-- [ ] Añadir selector de lenguaje y botón copiar accesibles en la pestaña API.
+- [x] Añadir selector de lenguaje y botón copiar accesibles en la pestaña API.
 
 **Commit:** `feat: genera snippets desde requests canónicas`
 
@@ -168,13 +168,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Resolver conectores por `(provider, service)`, no solo por proveedor.
-- [ ] Validar MIME declarado, firma mágica y límite de 10 MB antes de llamar a Google.
-- [ ] Enviar texto + imagen inline y mapear la respuesta a `image-pair`.
-- [ ] Ejecutar edición en POST y devolver `200 COMPLETED`; no crear `task_id` con el upload.
-- [ ] Sanear/truncar errores externos, redactando key, base64 y URLs sensibles.
-- [ ] Documentar request multipart o JSON base64 — elegir una sola forma tras un test de
-      compatibilidad con Workers; preferir multipart si no complica el contrato compartido.
+- [x] Resolver conectores por `(provider, service)`, no solo por proveedor.
+- [x] Validar MIME declarado, firma mágica y límite de 10 MB antes de llamar a Google.
+- [x] Enviar texto + imagen inline y mapear la respuesta a `image-pair`.
+- [x] Ejecutar edición en POST y devolver `200 COMPLETED`; no crear `task_id` con el upload.
+- [x] Sanear/truncar errores externos, redactando key, base64 y URLs sensibles.
+- [x] Documentar request multipart o JSON base64 — elegido JSON base64 por compartir
+      contrato canónico entre Worker, adaptador y snippets sin un segundo serializer.
 
 **Commit:** `feat: añade edición de imagen con google`
 

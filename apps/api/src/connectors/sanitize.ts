@@ -7,12 +7,15 @@ const MAX_MESSAGE_LENGTH = 300;
  */
 export function sanitizeUpstreamMessage(
   message: string | undefined,
-  secret: string | undefined,
+  secret: string | readonly string[] | undefined,
   fallback: string,
 ): string {
   if (!message) return fallback;
 
-  const redacted = secret ? message.split(secret).join('«redacted»') : message;
+  const secrets = typeof secret === 'string' ? [secret] : (secret ?? []);
+  const redacted = secrets
+    .filter((value) => value.length > 0)
+    .reduce((current, value) => current.split(value).join('«redacted»'), message);
 
   if (redacted.length <= MAX_MESSAGE_LENGTH) return redacted;
   return `${redacted.slice(0, MAX_MESSAGE_LENGTH)}…`;

@@ -52,12 +52,16 @@ export const googleConnector: Connector = async (request, ctx) => {
   return output;
 };
 
-function mapGoogleError(
+export function mapGoogleError(
   status: number,
   payload: { error?: { message?: string; details?: { reason?: string }[] } },
-  apiKey: string | undefined,
+  sensitiveValues: string | readonly string[] | undefined,
 ): PlatformError {
-  const message = sanitizeUpstreamMessage(payload.error?.message, apiKey, 'Google request failed');
+  const message = sanitizeUpstreamMessage(
+    payload.error?.message,
+    sensitiveValues,
+    'Google request failed',
+  );
   if (status === 429) return new PlatformError('rate_limited', message);
   if (status === 403) return new PlatformError('invalid_api_key', message);
   if (status === 400) {

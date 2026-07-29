@@ -1,4 +1,5 @@
 import { API_KEY_HEADER, taskResponseSchema } from '../api-contract';
+import { buildApiRequest, buildApiTraceRequest } from '../api-request';
 import { PlatformError } from '../errors';
 import type {
   ApiTraceStep,
@@ -48,9 +49,9 @@ export function createPlatformAdapter(options: PlatformAdapterOptions): Generati
   const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
   const maxPollMs = options.maxPollMs ?? DEFAULT_MAX_POLL_MS;
 
-  function headers(): Record<string, string> {
+  function headers(base: Record<string, string> = {}): Record<string, string> {
     const key = options.getApiKey?.();
-    return { 'content-type': 'application/json', ...(key ? { [API_KEY_HEADER]: key } : {}) };
+    return { ...base, ...(key ? { [API_KEY_HEADER]: key } : {}) };
   }
 
   return {
@@ -58,20 +59,13 @@ export function createPlatformAdapter(options: PlatformAdapterOptions): Generati
       const started = Date.now();
       const apiTrace: ApiTraceStep[] = [];
 
-      const createUrl = `${options.apiBaseUrl}/v1/services/${request.service}`;
-      const body = {
-        provider: request.provider,
-        prompt: request.prompt,
-        model: request.model,
-        aspect_ratio: request.aspectRatio,
-        seed: request.seed,
-      };
-      apiTrace.push({ kind: 'request', method: 'POST', url: createUrl, body });
+      const apiRequest = buildApiRequest(request, options.apiBaseUrl);
+      apiTrace.push(buildApiTraceRequest(request, options.apiBaseUrl));
 
-      const created = await fetchImpl(createUrl, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify(body),
+      const created = await fetchImpl(apiRequest.url, {
+        method: apiRequest.method,
+        headers: headers(apiRequest.headers),
+        body: JSON.stringify(apiRequest.body),
         ...(signal ? { signal } : {}),
       });
       if (!created.ok) throw await readError(created);
@@ -93,6 +87,12 @@ export function createPlatformAdapter(options: PlatformAdapterOptions): Generati
         const task = taskResponseSchema.parse(await polled.json());
         if (task.status === 'FAILED') throw new PlatformError(task.error.code, task.error.message);
         if (task.status === 'COMPLETED') {
+          if (task.output.kind !== 'image') {
+            throw new PlatformError(
+              'provider_error',
+              `Unsupported output kind "${task.output.kind}"`,
+            );
+          }
           apiTrace.push({ kind: 'completed', response: task });
           return {
             kind: 'image',
