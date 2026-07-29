@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './app';
@@ -36,6 +36,21 @@ describe('App', () => {
     expect(screen.getByLabelText('Prompt')).toHaveValue('A paper boat');
     expect(screen.getByLabelText('Source image')).toBeInTheDocument();
     expect(screen.queryByLabelText('Duration')).not.toBeInTheDocument();
+  });
+
+  it('usar un ejemplo hidrata draft y resultado sin invocar el adaptador', async () => {
+    const service = createMockAdapter({ latencyMs: 0 });
+    const generate = vi.spyOn(service, 'generate');
+    render(<App service={service} />);
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Use example' })[0]!);
+
+    expect(screen.getByLabelText('Prompt')).toHaveValue('A paper boat under moonlight');
+    expect(screen.getByRole('img', { name: 'Generated image' })).toHaveAttribute(
+      'src',
+      '/mocks/wide-1.webp',
+    );
+    expect(generate).not.toHaveBeenCalled();
   });
 });
 

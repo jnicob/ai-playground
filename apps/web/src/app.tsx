@@ -1,14 +1,17 @@
-import { useMemo, useReducer, useRef } from 'react';
+import { useMemo, useReducer, useRef, useState } from 'react';
 import { I18nProvider, useI18n } from './i18n/i18n';
 import {
   SERVICE_CATALOG,
   createGenerationService,
   providerById,
   type GenerationRequest,
+  type GenerationResult,
   type GenerationService,
 } from '@ai-playground/core';
+import type { ExampleDefinition } from './examples';
 import type { MessageKey } from './i18n/messages';
 import { ApiKeyPanel } from './ui/api-key-panel';
+import { ExampleGallery } from './ui/example-gallery';
 import { GenerationForm } from './ui/generation-form';
 import { createGenerationDraft, generationDraftReducer } from './ui/generation-draft';
 import { ProviderSelector } from './ui/provider-selector';
@@ -21,6 +24,7 @@ function Playground({ service }: { service?: GenerationService }) {
   const [draft, dispatch] = useReducer(generationDraftReducer, undefined, createGenerationDraft);
   const { keyFor, setKey, clearKey } = useApiKeys();
   const lastRequest = useRef<GenerationRequest | null>(null);
+  const [exampleResult, setExampleResult] = useState<GenerationResult | null>(null);
 
   const provider = providerById(draft.provider);
   const apiKey = keyFor(draft.provider);
@@ -38,7 +42,28 @@ function Playground({ service }: { service?: GenerationService }) {
   const { state, generate } = useGeneration(activeGenerationService);
   function handleGenerate(request: GenerationRequest) {
     lastRequest.current = request;
+    setExampleResult(null);
     generate(request);
+  }
+
+  function handleUseExample(example: ExampleDefinition) {
+    dispatch({ type: 'load-example', value: example.patch });
+    const metadata = {
+      provider: example.patch.provider,
+      degraded: false,
+      elapsedMs: 0,
+      apiTrace: [],
+    };
+    const result: GenerationResult =
+      example.result.kind === 'video'
+        ? { ...example.result, ...metadata, dispose: () => undefined }
+        : { ...example.result, ...metadata };
+    setExampleResult(result);
+  }
+
+  function handleSelectService(value: (typeof SERVICE_CATALOG)[number]['id']) {
+    setExampleResult(null);
+    dispatch({ type: 'select-service', value });
   }
 
   function toggleTheme() {
@@ -72,7 +97,7 @@ function Playground({ service }: { service?: GenerationService }) {
           {SERVICE_CATALOG.map((serviceDefinition) => (
             <button
               key={serviceDefinition.id}
-              onClick={() => dispatch({ type: 'select-service', value: serviceDefinition.id })}
+              onClick={() => handleSelectService(serviceDefinition.id)}
               aria-current={serviceDefinition.id === draft.service ? 'true' : undefined}
               className="rounded-md px-3 py-2 text-left text-sm text-muted aria-[current]:bg-surface aria-[current]:text-fg"
             >
@@ -102,9 +127,10 @@ function Playground({ service }: { service?: GenerationService }) {
             disabled={needsKey}
             onGenerate={handleGenerate}
           />
+          <ExampleGallery service={draft.service} onUse={handleUseExample} />
         </div>
         <ResultPanel
-          state={state}
+          state={exampleResult ? { status: 'success', result: exampleResult } : state}
           onRetry={() => lastRequest.current && handleGenerate(lastRequest.current)}
         />
       </main>

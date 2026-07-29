@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C7 completadas. La rama está apilada
+**Status:** En curso en `feat/phase-c-continuation`; C1–C8 completadas. La rama está apilada
 sobre `feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
@@ -260,11 +260,14 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Definir ejemplos tipados con id estable, modelo, patch de formulario y resultado local.
-- [ ] Crear al menos un ejemplo propio por servicio y por familia inicial de modelo.
-- [ ] “Usar ejemplo” hidrata draft y resultado sin invocar adaptador.
-- [ ] Añadir alt text, dimensiones/aspect ratio y póster de vídeo para evitar layout shift.
-- [ ] Optimizar assets y registrar licencia/procedencia propia en el documento.
+- [x] Definir ejemplos tipados con id estable, modelo, patch de formulario y resultado local.
+- [x] Crear al menos un ejemplo propio por servicio y por familia inicial de modelo.
+- [x] “Usar ejemplo” hidrata draft y resultado sin invocar adaptador.
+- [x] Añadir alt text, dimensiones/aspect ratio y póster de vídeo para evitar layout shift.
+- [x] Optimizar assets y registrar licencia/procedencia propia en el documento.
+
+Los ejemplos reutilizan los WebP/WebM propios y optimizados de `apps/web/public/mocks/` para no
+duplicar binarios. Su procedencia y licencia quedan registradas en el `README.md` de ese directorio.
 
 **Commit:** `feat: incorpora ejemplos precargados sin coste`
 

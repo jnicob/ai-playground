@@ -3,8 +3,8 @@
 ## Ahora
 
 Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
-#1 siga abierta. C1–C7 completadas: contratos, registry, snippets, edición de imagen, vídeo
-Veo, adaptador dual y formulario controlado.
+#1 siga abierta. C1–C8 completadas: contratos, registry, snippets, edición de imagen, vídeo
+Veo, adaptador dual, formulario controlado y ejemplos locales sin coste.
 
 ## Hecho
 
@@ -16,7 +16,7 @@ Veo, adaptador dual y formulario controlado.
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación fresca: lint, format, typecheck, 208 tests y build completos en verde.
+- Verificación C8: lint, format, typecheck, 255 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
@@ -35,10 +35,13 @@ Veo, adaptador dual y formulario controlado.
 - C7: un reducer controlado gobierna servicio, proveedor, modelo y parámetros sin perder
   campos compatibles. La edición valida tipo/firma/10 MiB, permite preview/reemplazo/borrado;
   vídeo ofrece aspecto/duración/720p, estimación, confirmación de pago y aviso de cancelación.
+- C8: el catálogo tipado cubre imagen, edición y vídeo para las familias iniciales con assets
+  propios locales. “Usar ejemplo” hidrata draft y resultado sin invocar adaptadores; previews
+  declaran alt/dimensiones y vídeo usa póster sin precargar el binario.
 
 ## Siguiente acción
 
-Ejecutar C8: ejemplos propios precargados por servicio/modelo sin llamadas live.
+Ejecutar C9: estado seguro por URL y diálogo de compartir accesible.
 
 ## Pendientes del usuario
 
