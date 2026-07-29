@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { API_ERROR_CODES, PlatformError } from './errors';
-import { generationRequestSchema } from './registry';
+import { generateImageRequestSchema } from './registry';
 import type { GenerateImageRequest } from './types';
 
 /** Header por el que viaja la key del usuario en pass-through. Nunca se almacena server-side. */
@@ -35,7 +35,7 @@ function canonicalRequest(request: GenerateImageRequest): string {
 }
 
 export function encodeTaskId(request: GenerateImageRequest): string {
-  const result = generationRequestSchema.safeParse(request);
+  const result = generateImageRequestSchema.safeParse(request);
   if (!result.success) throw new PlatformError('invalid_request', 'Invalid generation request');
   return `${REQUEST_TASK_ID_PREFIX}${toBase64Url(canonicalRequest(result.data))}`;
 }
@@ -101,7 +101,9 @@ export function decodeTaskReference(taskId: string): TaskReference {
   }
 
   if (taskId.startsWith(REQUEST_TASK_ID_PREFIX)) {
-    const result = generationRequestSchema.safeParse(parsePayload(taskId, REQUEST_TASK_ID_PREFIX));
+    const result = generateImageRequestSchema.safeParse(
+      parsePayload(taskId, REQUEST_TASK_ID_PREFIX),
+    );
     if (!result.success) throw new PlatformError('invalid_request', 'Malformed task id');
     return { version: 'v1', kind: 'request', request: result.data };
   }

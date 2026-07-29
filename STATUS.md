@@ -2,9 +2,8 @@
 
 ## Ahora
 
-Fase C en curso en `feat/phase-c`. C1 completada: requests discriminadas, outputs
-`image`/`image-pair`/`video`, respuesta POST dual y codec `task_id` v2 para operaciones
-Google con compatibilidad v1.
+Fase C en curso en `feat/phase-c`. C1–C2 completadas: contratos discriminados y registry
+de servicios/modelos con compatibilidad estricta, capacidades y costes oficiales fechados.
 
 ## Hecho
 
@@ -16,13 +15,15 @@ Google con compatibilidad v1.
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación fresca: lint, format, typecheck, 143 tests y build completos en verde.
+- Verificación fresca: lint, format, typecheck, 182 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
+- C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
+  restricciones 720p y pricing verificado; mock propio para edición y vídeo.
 
 ## Siguiente acción
 
-Ejecutar C2: registry de servicios, modelos, capacidades y costes verificados.
+Ejecutar C3: payload HTTP canónico y snippets cURL/JavaScript/Python sin secretos.
 
 ## Pendientes del usuario
 

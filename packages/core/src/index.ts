@@ -3,7 +3,7 @@ export * from './registry';
 export * from './api-contract';
 export * from './errors';
 export { createMockAdapter } from './adapters/mock';
-export { MOCK_CATALOG } from './adapters/mock-catalog';
+export { MOCK_CATALOG, MOCK_VIDEO_CATALOG } from './adapters/mock-catalog';
 export { createPlatformAdapter, type PlatformAdapterOptions } from './adapters/platform';
 export { withMockFallback } from './with-mock-fallback';
 export { createGenerationService } from './factory';

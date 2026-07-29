@@ -74,13 +74,13 @@ describe('GenerationForm', () => {
       </I18nProvider>,
     );
 
-    expect(screen.getByLabelText('Model')).toHaveValue('gemini-2.5-flash-image');
+    expect(screen.getByLabelText('Model')).toHaveValue('gemini-3.1-flash-lite-image');
     await userEvent.type(screen.getByLabelText('Prompt'), 'a red fox');
     await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
     expect(onGenerate).toHaveBeenCalledWith(
       expect.objectContaining({
         provider: 'google',
-        model: 'gemini-2.5-flash-image',
+        model: 'gemini-3.1-flash-lite-image',
       }),
     );
   });

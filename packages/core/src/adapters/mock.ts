@@ -4,7 +4,7 @@ import {
   type GenerationRequest,
   type GenerationService,
 } from '../types';
-import { MOCK_CATALOG } from './mock-catalog';
+import { MOCK_CATALOG, MOCK_VIDEO_CATALOG } from './mock-catalog';
 
 const DEFAULT_LATENCY_MS = 600;
 
@@ -53,17 +53,32 @@ export function createMockAdapter(options: { latencyMs?: number } = {}): Generat
       await sleep(latencyMs, signal);
       const assets = MOCK_CATALOG[request.aspectRatio];
       const url = assets[(request.seed + hashString(request.model)) % assets.length]!;
-      const { width, height } = ASPECT_RATIOS[request.aspectRatio];
-      return {
-        kind: 'image',
-        url,
-        width,
-        height,
-        provider: 'mock',
+      const meta = {
+        provider: 'mock' as const,
         degraded: false,
         elapsedMs: Date.now() - started,
         apiTrace: buildTrace(request, url),
       };
+
+      if (request.service === 'edit-image') {
+        return {
+          kind: 'image-pair',
+          before: `data:${request.sourceImage.mimeType};base64,${request.sourceImage.data}`,
+          after: url,
+          ...meta,
+        };
+      }
+
+      if (request.service === 'generate-video') {
+        return {
+          kind: 'video',
+          ...MOCK_VIDEO_CATALOG[request.aspectRatio],
+          ...meta,
+        };
+      }
+
+      const { width, height } = ASPECT_RATIOS[request.aspectRatio];
+      return { kind: 'image', url, width, height, ...meta };
     },
   };
 }

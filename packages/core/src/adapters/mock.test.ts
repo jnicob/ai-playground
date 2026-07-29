@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createMockAdapter } from './mock';
 import { MOCK_CATALOG } from './mock-catalog';
 import { ASPECT_RATIOS, type AspectRatio, type GenerateImageRequest } from '../types';
-import { PROVIDERS } from '../registry';
+import { MODEL_CATALOG } from '../registry';
 
 const req = (over: Partial<GenerateImageRequest> = {}): GenerateImageRequest => ({
   service: 'generate-image',
@@ -30,23 +30,52 @@ describe('mock adapter', () => {
     expect(urls.size).toBe(MOCK_CATALOG.square_1_1.length);
   });
   it('cubre TODA combinación servicio×modelo×ratio del registry sin fallar', async () => {
-    for (const p of PROVIDERS)
-      for (const models of Object.values(p.models))
-        for (const model of models)
-          for (const aspectRatio of Object.keys(ASPECT_RATIOS) as AspectRatio[]) {
-            const r = await adapter.generate(req({ model, aspectRatio }));
-            expect(r.kind).toBe('image');
-            if (r.kind === 'image') {
-              expect(r.width).toBe(ASPECT_RATIOS[aspectRatio].width);
-              expect(r.url).toMatch(/^\/mocks\//);
-            }
-          }
+    const imageModels = MODEL_CATALOG.filter((model) => model.service === 'generate-image');
+    for (const { id: model } of imageModels)
+      for (const aspectRatio of Object.keys(ASPECT_RATIOS) as AspectRatio[]) {
+        const r = await adapter.generate(req({ model, aspectRatio }));
+        expect(r.kind).toBe('image');
+        if (r.kind === 'image') {
+          expect(r.width).toBe(ASPECT_RATIOS[aspectRatio].width);
+          expect(r.url).toMatch(/^\/mocks\//);
+        }
+      }
   });
   it('emite la traza task-based completa', async () => {
     const r = await adapter.generate(req());
     expect(r.apiTrace.map((s) => s.kind)).toEqual(['request', 'status', 'poll', 'completed']);
     expect(r.provider).toBe('mock');
     expect(r.degraded).toBe(false);
+  });
+  it('devuelve un par antes/después para edición', async () => {
+    const result = await adapter.generate({
+      ...req(),
+      service: 'edit-image',
+      model: 'mock-edit-v1',
+      sourceImage: { mimeType: 'image/png', data: 'YQ==' },
+    });
+
+    expect(result).toMatchObject({
+      kind: 'image-pair',
+      before: 'data:image/png;base64,YQ==',
+      after: expect.stringMatching(/^\/mocks\//),
+    });
+  });
+  it('devuelve un vídeo propio con poster para generate-video', async () => {
+    const result = await adapter.generate({
+      ...req(),
+      service: 'generate-video',
+      model: 'mock-video-v1',
+      aspectRatio: 'widescreen_16_9',
+      durationSeconds: 4,
+      resolution: '720p',
+    });
+
+    expect(result).toMatchObject({
+      kind: 'video',
+      url: '/mocks/video-gradient.webm',
+      poster: '/mocks/wide-1.webp',
+    });
   });
   it('aborta con AbortSignal', async () => {
     const slow = createMockAdapter({ latencyMs: 5_000 });

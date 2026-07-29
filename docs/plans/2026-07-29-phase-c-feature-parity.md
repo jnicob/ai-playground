@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c`; C1 completada.
+**Status:** En curso en `feat/phase-c`; C1–C2 completadas.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -124,11 +124,11 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Declarar compatibilidad modelo × servicio × proveedor, sin combinaciones imposibles.
-- [ ] Añadir metadatos de aspecto, duración, resolución, auth y coste estimado.
-- [ ] Incluir `pricingVerifiedAt` y evitar descubrir modelos desde endpoints inconsistentes.
-- [ ] Hacer que la opción inicial de vídeo sea Lite, 4 s y 720p.
-- [ ] Añadir resultados mock propios para las dos capacidades nuevas.
+- [x] Declarar compatibilidad modelo × servicio × proveedor, sin combinaciones imposibles.
+- [x] Añadir metadatos de aspecto, duración, resolución, auth y coste estimado.
+- [x] Incluir `pricingVerifiedAt` y evitar descubrir modelos desde endpoints inconsistentes.
+- [x] Hacer que la opción inicial de vídeo sea Lite, 4 s y 720p.
+- [x] Añadir resultados mock propios para las dos capacidades nuevas.
 
 **Commit:** `feat: registra modelos de edición y vídeo`
 

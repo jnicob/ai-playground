@@ -41,7 +41,7 @@ describe('App con proveedores live', () => {
     await userEvent.selectOptions(screen.getByLabelText('Provider'), 'google');
     const models = screen.getByLabelText('Model') as HTMLSelectElement;
     expect([...models.options].map((option) => option.value)).toContain('gemini-2.5-flash-image');
-    expect(models).toHaveValue('gemini-2.5-flash-image');
+    expect(models).toHaveValue('gemini-3.1-flash-lite-image');
   });
 
   it('bloquea generar si falta la key del proveedor', async () => {

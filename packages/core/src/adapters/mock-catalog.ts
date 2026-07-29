@@ -5,3 +5,14 @@ export const MOCK_CATALOG: Record<AspectRatio, readonly string[]> = {
   widescreen_16_9: ['/mocks/wide-1.webp', '/mocks/wide-2.webp'],
   vertical_9_16: ['/mocks/tall-1.webp', '/mocks/tall-2.webp'],
 };
+
+export const MOCK_VIDEO_CATALOG = {
+  widescreen_16_9: {
+    url: '/mocks/video-gradient.webm',
+    poster: '/mocks/wide-1.webp',
+  },
+  vertical_9_16: {
+    url: '/mocks/video-gradient.webm',
+    poster: '/mocks/tall-1.webp',
+  },
+} as const;

@@ -5,10 +5,10 @@ import {
   PlatformError,
   decodeTaskId,
   encodeTaskId,
-  generationRequestSchema,
+  generateImageRequestSchema,
   providerById,
   type ApiErrorCode,
-  type GenerationRequest,
+  type GenerateImageRequest,
 } from '@ai-playground/core';
 import { connectorFor } from './connectors';
 import { openApiDocument } from './openapi';
@@ -36,7 +36,7 @@ function errorResponse(error: PlatformError) {
 }
 
 /** El proveedor exige key y no vino en el header → 428, antes de tocar al proveedor. */
-function assertKeyIfRequired(request: GenerationRequest, apiKey: string | undefined): void {
+function assertKeyIfRequired(request: GenerateImageRequest, apiKey: string | undefined): void {
   if (providerById(request.provider).auth === 'api-key' && !apiKey) {
     throw new PlatformError(
       'missing_api_key',
@@ -46,10 +46,10 @@ function assertKeyIfRequired(request: GenerationRequest, apiKey: string | undefi
 }
 
 app.post('/v1/services/:service', async (c) => {
-  let request: GenerationRequest;
+  let request: GenerateImageRequest;
   try {
     const raw = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
-    const parsed = generationRequestSchema.safeParse({
+    const parsed = generateImageRequestSchema.safeParse({
       service: c.req.param('service'),
       provider: raw.provider,
       prompt: raw.prompt,
@@ -77,7 +77,7 @@ app.get('/v1/tasks/:taskId', async (c) => {
   const taskId = c.req.param('taskId');
   const apiKey = c.req.header(API_KEY_HEADER);
 
-  let request: GenerationRequest;
+  let request: GenerateImageRequest;
   try {
     request = decodeTaskId(taskId);
     assertKeyIfRequired(request, apiKey);
