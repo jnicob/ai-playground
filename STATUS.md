@@ -2,8 +2,8 @@
 
 ## Ahora
 
-Fase B completada en `main`: API task-based propia, Pollinations y Google server-side,
-adaptador `platform`, panel de keys pass-through y selector de proveedor integrados.
+Fase C planificada y lista para implementar: edición de imagen y vídeo Google, ejemplos
+sin coste, share-by-URL, snippets, historial efímero y descarga segura.
 
 ## Hecho
 
@@ -19,17 +19,20 @@ adaptador `platform`, panel de keys pass-through y selector de proveedor integra
 
 ## Siguiente acción
 
-Escribir el plan just-in-time de fase C desde el roadmap: `edit-image`,
-`generate-video`, ejemplos por modelo, share-by-URL, snippets, historial y descarga.
+Ejecutar C1: contratos discriminados, outputs de edición/vídeo y `task_id` v2 compatible
+con v1.
 
-## Pendientes del usuario (no bloqueantes)
+## Pendientes del usuario
 
-- Ninguno. Para probar Google live hace falta una key propia con billing; nunca se guarda
-  server-side.
+- Crear una API key personal en Google AI Studio y habilitar billing. No bloquea
+  implementación ni tests mock, pero sí los smoke tests live de edición y Veo.
+- Autorizar expresamente cada smoke de pago tras ver el coste estimado. La key nunca se
+  guarda server-side ni se añade a Git.
 
 ## Fuentes de verdad
 
 - Spec: `docs/specs/2026-07-24-ai-playground-design.md`
 - Roadmap: `docs/plans/2026-07-24-product-roadmap.md`
 - Plan cerrado de fase B: `docs/plans/2026-07-29-phase-b-live-api.md`
+- Plan de fase C: `docs/plans/2026-07-29-phase-c-feature-parity.md`
 - Convenciones: `AGENTS.md`
