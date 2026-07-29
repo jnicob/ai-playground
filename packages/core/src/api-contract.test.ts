@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { API_KEY_HEADER, decodeTaskId, encodeTaskId, taskResponseSchema } from './api-contract';
-import { PlatformError, isFatalPlatformError } from './errors';
+import { API_ERROR_CODES, PlatformError, isFatalPlatformError } from './errors';
 import type { GenerationRequest } from './types';
 
 const request: GenerationRequest = {
@@ -53,6 +53,25 @@ describe('task id codec', () => {
     expect((thrown as PlatformError).code).toBe('invalid_request');
     expect(isFatalPlatformError(thrown)).toBe(true);
   });
+
+  it('encodeTaskId normaliza la request: el id es idéntico tras un round-trip aunque el prompt tenga espacios', () => {
+    const withSpaces = { ...request, prompt: '  un zorro rojo en la nieve  ' };
+    const firstId = encodeTaskId(withSpaces);
+    const roundTrippedId = encodeTaskId(decodeTaskId(firstId));
+    expect(roundTrippedId).toBe(firstId);
+  });
+
+  it('encodeTaskId rechaza una request inválida con PlatformError invalid_request', () => {
+    const invalid = { ...request, prompt: '   ' };
+    let thrown: unknown;
+    try {
+      encodeTaskId(invalid);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(PlatformError);
+    expect((thrown as PlatformError).code).toBe('invalid_request');
+  });
 });
 
 describe('taskResponseSchema', () => {
@@ -78,6 +97,17 @@ describe('taskResponseSchema', () => {
         error: { code: 'provider_error', message: 'boom' },
       }).status,
     ).toBe('FAILED');
+  });
+
+  it('acepta FAILED con cualquier código de API_ERROR_CODES (evita drift entre errors.ts y el schema)', () => {
+    for (const code of API_ERROR_CODES) {
+      const parsed = taskResponseSchema.safeParse({
+        task_id: 'v1.a',
+        status: 'FAILED',
+        error: { code, message: 'x' },
+      });
+      expect(parsed.success).toBe(true);
+    }
   });
 
   it('rechaza COMPLETED sin output y estados desconocidos', () => {

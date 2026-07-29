@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PlatformError } from './errors';
+import { API_ERROR_CODES, PlatformError } from './errors';
 import { generationRequestSchema } from './registry';
 import type { GenerationRequest } from './types';
 
@@ -33,7 +33,9 @@ function canonical(request: GenerationRequest): string {
 }
 
 export function encodeTaskId(request: GenerationRequest): string {
-  return `${TASK_ID_PREFIX}${toBase64Url(canonical(request))}`;
+  const result = generationRequestSchema.safeParse(request);
+  if (!result.success) throw new PlatformError('invalid_request', 'Invalid generation request');
+  return `${TASK_ID_PREFIX}${toBase64Url(canonical(result.data))}`;
 }
 
 export function decodeTaskId(taskId: string): GenerationRequest {
@@ -65,16 +67,7 @@ export const taskOutputSchema = z.object({
 export type TaskOutput = z.infer<typeof taskOutputSchema>;
 
 const apiErrorSchema = z.object({
-  code: z.enum([
-    'invalid_request',
-    'missing_api_key',
-    'invalid_api_key',
-    'content_blocked',
-    'unsupported_provider',
-    'rate_limited',
-    'provider_error',
-    'task_not_found',
-  ]),
+  code: z.enum(API_ERROR_CODES),
   message: z.string(),
 });
 

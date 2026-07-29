@@ -55,4 +55,23 @@ describe('ResultPanel', () => {
     wrap({ ...success, result: { ...success.result, degraded: true } });
     expect(screen.getByText('live → mock')).toBeInTheDocument();
   });
+  it('imagen sin width/height (adaptador live que no las conoce): no inventa dimensiones', () => {
+    const imageResult = success.result;
+    if (imageResult.kind !== 'image') throw new Error('unreachable: fixture debe ser image');
+    const resultWithoutDimensions: GenerationState = {
+      status: 'success',
+      result: {
+        kind: 'image',
+        url: imageResult.url,
+        provider: imageResult.provider,
+        degraded: imageResult.degraded,
+        elapsedMs: imageResult.elapsedMs,
+        apiTrace: imageResult.apiTrace,
+      },
+    };
+    wrap(resultWithoutDimensions);
+    const img = screen.getByRole('img', { name: 'Generated image' });
+    expect(img).not.toHaveAttribute('width');
+    expect(img).not.toHaveAttribute('height');
+  });
 });
