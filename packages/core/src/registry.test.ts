@@ -20,7 +20,7 @@ describe('registry', () => {
     ['seed negativa', { ...valid, seed: -1 }],
     ['seed no entera', { ...valid, seed: 1.5 }],
     ['aspect ratio desconocido', { ...valid, aspectRatio: 'panoramic' }],
-    ['provider desconocido', { ...valid, provider: 'openai' }],
+    ['provider desconocido', { ...valid, provider: 'unknown' }],
   ])('rechaza %s', (_name, input) => {
     expect(generationRequestSchema.safeParse(input).success).toBe(false);
   });
