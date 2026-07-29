@@ -2,8 +2,9 @@
 
 ## Ahora
 
-Fase C en curso en `feat/phase-c`. C1–C4 completadas: contratos, registry, snippets y
-edición de imagen Google síncrona con upload validado.
+Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
+#1 siga abierta. C1–C5 completadas: contratos, registry, snippets, edición de imagen y vídeo
+Veo.
 
 ## Hecho
 
@@ -24,10 +25,14 @@ edición de imagen Google síncrona con upload validado.
   ejecutable con polling/descarga, selector accesible y copy feedback.
 - C4: conector Google por servicio, PNG/JPEG/WebP base64 hasta 10 MiB con firma mágica,
   output externo validado y respuesta `200 COMPLETED` sin serializar el upload en task ID.
+- C5: Veo inicia `predictLongRunning`, devuelve `task_id` v2 y consulta la operación sin
+  reiniciarla. El vídeo final se sirve mediante descarga autenticada propia con token de
+  `fileId` validado, allowlist HTTPS estricta, redirects bloqueados, MP4/tamaño controlados y
+  `private, no-store`.
 
 ## Siguiente acción
 
-Ejecutar C5: Veo long-running, `task_id` v2, polling y descarga autenticada segura.
+Ejecutar C6: adaptar `platform` a respuestas 200/202, polling adaptativo y lifecycle de blobs.
 
 ## Pendientes del usuario
 

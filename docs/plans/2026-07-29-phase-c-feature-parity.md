@@ -4,7 +4,8 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c`; C1–C4 completadas.
+**Status:** En curso en `feat/phase-c-continuation`; C1–C5 completadas. La rama está apilada
+sobre `feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -191,13 +192,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Iniciar `predictLongRunning`, validar la operación y devolver `202` + `task_id` v2.
-- [ ] Consultar operaciones v2 sin reiniciar trabajos en cada GET.
-- [ ] Mapear progreso, error y resultado; redacción de secretos incluida.
-- [ ] Exponer descarga mediante endpoint propio con token opaco validado.
-- [ ] Permitir únicamente HTTPS y hosts/path de Google conocidos; bloquear redirects fuera de
+- [x] Iniciar `predictLongRunning`, validar la operación y devolver `202` + `task_id` v2.
+- [x] Consultar operaciones v2 sin reiniciar trabajos en cada GET.
+- [x] Mapear progreso, error y resultado; redacción de secretos incluida.
+- [x] Exponer descarga mediante endpoint propio con token opaco validado.
+- [x] Permitir únicamente HTTPS y hosts/path de Google conocidos; bloquear redirects fuera de
       allowlist, IPs, hosts alternativos y paths manipulados.
-- [ ] Transmitir bytes con tipo/tamaño controlados y sin cache compartida.
+- [x] Transmitir bytes con tipo/tamaño controlados y sin cache compartida.
 
 **Commit:** `feat: integra generación de vídeo con veo`
 
