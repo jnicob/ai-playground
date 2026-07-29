@@ -13,19 +13,27 @@ const provider = PROVIDERS[0]!;
 describe('GenerationForm', () => {
   it('envía la request con seed explícita', async () => {
     const onGenerate = vi.fn<(r: GenerationRequest) => void>();
-    wrap(<GenerationForm service={service} provider={provider} busy={false} onGenerate={onGenerate} />);
+    wrap(
+      <GenerationForm service={service} provider={provider} busy={false} onGenerate={onGenerate} />,
+    );
     await userEvent.type(screen.getByLabelText('Prompt'), 'a red fox');
     await userEvent.selectOptions(screen.getByLabelText('Model'), 'turbo');
     await userEvent.type(screen.getByLabelText('Seed'), '42');
     await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
     expect(onGenerate).toHaveBeenCalledWith({
-      service: 'generate-image', provider: 'mock', prompt: 'a red fox',
-      model: 'turbo', aspectRatio: 'square_1_1', seed: 42,
+      service: 'generate-image',
+      provider: 'mock',
+      prompt: 'a red fox',
+      model: 'turbo',
+      aspectRatio: 'square_1_1',
+      seed: 42,
     });
   });
   it('sin seed, resuelve una aleatoria (0..999999)', async () => {
     const onGenerate = vi.fn<(r: GenerationRequest) => void>();
-    wrap(<GenerationForm service={service} provider={provider} busy={false} onGenerate={onGenerate} />);
+    wrap(
+      <GenerationForm service={service} provider={provider} busy={false} onGenerate={onGenerate} />,
+    );
     await userEvent.type(screen.getByLabelText('Prompt'), 'x');
     await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
     const seed = onGenerate.mock.calls[0]?.[0]?.seed;

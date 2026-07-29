@@ -24,7 +24,10 @@ export function useGeneration(service: GenerationService) {
         })
         .catch((error: unknown) => {
           if (controller.signal.aborted) return;
-          setState({ status: 'error', message: error instanceof Error ? error.message : String(error) });
+          setState({
+            status: 'error',
+            message: error instanceof Error ? error.message : String(error),
+          });
         });
     },
     [service],

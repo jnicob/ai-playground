@@ -2,10 +2,14 @@ import type { ApiTraceStep } from '@ai-playground/core';
 
 const label = (step: ApiTraceStep): string => {
   switch (step.kind) {
-    case 'request': return `${step.method} ${step.url}`;
-    case 'status': return `status: ${step.state}`;
-    case 'poll': return `${step.method} ${step.url}`;
-    case 'completed': return 'response';
+    case 'request':
+      return `${step.method} ${step.url}`;
+    case 'status':
+      return `status: ${step.state}`;
+    case 'poll':
+      return `${step.method} ${step.url}`;
+    case 'completed':
+      return 'response';
   }
 };
 

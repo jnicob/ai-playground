@@ -4,13 +4,23 @@ import { useGeneration } from './use-generation';
 import type { GenerationRequest, GenerationResult, GenerationService } from '@ai-playground/core';
 
 const REQ: GenerationRequest = {
-  service: 'generate-image', provider: 'mock', prompt: 'x', model: 'flux',
-  aspectRatio: 'square_1_1', seed: 1,
+  service: 'generate-image',
+  provider: 'mock',
+  prompt: 'x',
+  model: 'flux',
+  aspectRatio: 'square_1_1',
+  seed: 1,
 };
 
 const ok: GenerationResult = {
-  kind: 'image', url: '/mocks/square-1.webp', width: 1024, height: 1024,
-  provider: 'mock', degraded: false, elapsedMs: 5, apiTrace: [],
+  kind: 'image',
+  url: '/mocks/square-1.webp',
+  width: 1024,
+  height: 1024,
+  provider: 'mock',
+  degraded: false,
+  elapsedMs: 5,
+  apiTrace: [],
 };
 
 describe('useGeneration', () => {
@@ -23,7 +33,11 @@ describe('useGeneration', () => {
     await waitFor(() => expect(result.current.state.status).toBe('success'));
   });
   it('error con mensaje', async () => {
-    const service: GenerationService = { generate: async () => { throw new Error('boom'); } };
+    const service: GenerationService = {
+      generate: async () => {
+        throw new Error('boom');
+      },
+    };
     const { result } = renderHook(() => useGeneration(service));
     act(() => result.current.generate(REQ));
     await waitFor(() => expect(result.current.state).toEqual({ status: 'error', message: 'boom' }));
@@ -35,7 +49,9 @@ describe('useGeneration', () => {
         new Promise((resolve, reject) => {
           calls += 1;
           if (calls === 1)
-            signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+            signal?.addEventListener('abort', () =>
+              reject(new DOMException('Aborted', 'AbortError')),
+            );
           else resolve(ok);
         }),
     };

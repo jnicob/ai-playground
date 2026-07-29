@@ -20,7 +20,10 @@ export function ResultPanel({ state, onRetry }: Props) {
       <div role="tablist" className="flex gap-1 border-b border-border">
         {tabs.map(({ id, label }) => (
           <button
-            key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
             className="px-3 py-1.5 text-sm text-muted aria-selected:border-b-2 aria-selected:border-accent aria-selected:text-fg"
           >
             {label}
@@ -38,8 +41,13 @@ export function ResultPanel({ state, onRetry }: Props) {
           )}
           {state.status === 'error' && (
             <div role="alert" className="flex flex-col items-start gap-2">
-              <p className="text-danger">{t('result.error')} ({state.message})</p>
-              <button onClick={onRetry} className="rounded-md border border-border px-3 py-1.5 text-fg">
+              <p className="text-danger">
+                {t('result.error')} ({state.message})
+              </p>
+              <button
+                onClick={onRetry}
+                className="rounded-md border border-border px-3 py-1.5 text-fg"
+              >
                 {t('result.retry')}
               </button>
             </div>
@@ -47,7 +55,10 @@ export function ResultPanel({ state, onRetry }: Props) {
           {result?.kind === 'image' && (
             <figure className="flex flex-col gap-2">
               <img
-                src={result.url} alt={t('result.alt')} width={result.width} height={result.height}
+                src={result.url}
+                alt={t('result.alt')}
+                width={result.width}
+                height={result.height}
                 className="max-w-full rounded-md border border-border"
               />
               <figcaption className="font-mono text-xs text-muted">

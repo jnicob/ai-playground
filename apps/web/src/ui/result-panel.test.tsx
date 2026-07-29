@@ -15,8 +15,13 @@ const wrap = (state: GenerationState, onRetry = vi.fn()) =>
 const success: GenerationState = {
   status: 'success',
   result: {
-    kind: 'image', url: '/mocks/square-1.webp', width: 1024, height: 1024,
-    provider: 'mock', degraded: false, elapsedMs: 12,
+    kind: 'image',
+    url: '/mocks/square-1.webp',
+    width: 1024,
+    height: 1024,
+    provider: 'mock',
+    degraded: false,
+    elapsedMs: 12,
     apiTrace: [{ kind: 'status', state: 'IN_PROGRESS', taskId: 'task_1' }],
   },
 };
@@ -38,7 +43,10 @@ describe('ResultPanel', () => {
   });
   it('success: imagen + badge de origen + tab API con la traza', async () => {
     wrap(success);
-    expect(screen.getByRole('img', { name: 'Generated image' })).toHaveAttribute('src', '/mocks/square-1.webp');
+    expect(screen.getByRole('img', { name: 'Generated image' })).toHaveAttribute(
+      'src',
+      '/mocks/square-1.webp',
+    );
     expect(screen.getByText('mock')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('tab', { name: 'API' }));
     expect(screen.getByText(/IN_PROGRESS/)).toBeInTheDocument();

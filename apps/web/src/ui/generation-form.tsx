@@ -42,42 +42,66 @@ export function GenerationForm({ service, provider, busy, onGenerate }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <label htmlFor="prompt" className="text-sm text-muted">{t('form.prompt')}</label>
+        <label htmlFor="prompt" className="text-sm text-muted">
+          {t('form.prompt')}
+        </label>
         <textarea
-          id="prompt" rows={4} value={prompt} onChange={(e) => setPrompt(e.target.value)}
+          id="prompt"
+          rows={4}
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
           className="rounded-md border border-border bg-surface p-2 text-fg"
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label htmlFor="model" className="text-sm text-muted">{t('form.model')}</label>
+        <label htmlFor="model" className="text-sm text-muted">
+          {t('form.model')}
+        </label>
         <select
-          id="model" value={model} onChange={(e) => setModel(e.target.value)}
+          id="model"
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
           className="rounded-md border border-border bg-surface p-2 text-fg"
         >
-          {models.map((m) => <option key={m}>{m}</option>)}
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor="aspect" className="text-sm text-muted">{t('form.aspectRatio')}</label>
-        <select
-          id="aspect" value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value as AspectRatio)}
-          className="rounded-md border border-border bg-surface p-2 text-fg"
-        >
-          {(Object.keys(ASPECT_RATIOS) as AspectRatio[]).map((ar) => (
-            <option key={ar} value={ar}>{t(`aspect.${ar}`)}</option>
+          {models.map((m) => (
+            <option key={m}>{m}</option>
           ))}
         </select>
       </div>
       <div className="flex flex-col gap-1">
-        <label htmlFor="seed" className="text-sm text-muted">{t('form.seed')}</label>
+        <label htmlFor="aspect" className="text-sm text-muted">
+          {t('form.aspectRatio')}
+        </label>
+        <select
+          id="aspect"
+          value={aspectRatio}
+          onChange={(e) => setAspectRatio(e.target.value as AspectRatio)}
+          className="rounded-md border border-border bg-surface p-2 text-fg"
+        >
+          {(Object.keys(ASPECT_RATIOS) as AspectRatio[]).map((ar) => (
+            <option key={ar} value={ar}>
+              {t(`aspect.${ar}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label htmlFor="seed" className="text-sm text-muted">
+          {t('form.seed')}
+        </label>
         <div className="flex gap-2">
           <input
-            id="seed" type="number" min={0} max={MAX_SEED} value={seedInput}
+            id="seed"
+            type="number"
+            min={0}
+            max={MAX_SEED}
+            value={seedInput}
             onChange={(e) => setSeedInput(e.target.value)}
             className="w-32 rounded-md border border-border bg-surface p-2 text-fg"
           />
           <button
-            type="button" onClick={() => setSeedInput(String(randomSeed()))}
+            type="button"
+            onClick={() => setSeedInput(String(randomSeed()))}
             className="rounded-md border border-border px-3 text-sm text-muted"
           >
             {t('form.seed.random')}
@@ -85,7 +109,8 @@ export function GenerationForm({ service, provider, busy, onGenerate }: Props) {
         </div>
       </div>
       <button
-        type="submit" disabled={busy}
+        type="submit"
+        disabled={busy}
         className="rounded-md bg-accent px-4 py-2 font-medium text-accent-fg disabled:opacity-60"
       >
         {busy ? t('form.generating') : t('form.generate')}
