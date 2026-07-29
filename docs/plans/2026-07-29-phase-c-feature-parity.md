@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C8 completadas. La rama está apilada
+**Status:** En curso en `feat/phase-c-continuation`; C1–C9 completadas. La rama está apilada
 sobre `feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
@@ -284,12 +284,12 @@ duplicar binarios. Su procedencia y licencia quedan registradas en el `README.md
 
 **Entregables:**
 
-- [ ] Serializar solo service/provider/model/prompt/aspect/seed/duration/resolution/example.
-- [ ] Parsear con Zod, límites de longitud y enums del registry; ignorar campos desconocidos.
-- [ ] Excluir key, upload, resultado, historial, blobs y task IDs de operaciones de pago.
-- [ ] Hidratar antes del primer render útil y manejar `popstate`.
-- [ ] Actualizar con `replaceState` y debounce; evitar bucles e historial del navegador ruidoso.
-- [ ] Diálogo nativo con foco, Escape, copy feedback y explicación de lo omitido.
+- [x] Serializar solo service/provider/model/prompt/aspect/seed/duration/resolution/example.
+- [x] Parsear con Zod, límites de longitud y enums del registry; ignorar campos desconocidos.
+- [x] Excluir key, upload, resultado, historial, blobs y task IDs de operaciones de pago.
+- [x] Hidratar antes del primer render útil y manejar `popstate`.
+- [x] Actualizar con `replaceState` y debounce; evitar bucles e historial del navegador ruidoso.
+- [x] Diálogo nativo con foco, Escape, copy feedback y explicación de lo omitido.
 
 **Commit:** `feat: permite compartir configuración por url`
 

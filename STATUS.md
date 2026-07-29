@@ -3,8 +3,8 @@
 ## Ahora
 
 Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
-#1 siga abierta. C1–C8 completadas: contratos, registry, snippets, edición de imagen, vídeo
-Veo, adaptador dual, formulario controlado y ejemplos locales sin coste.
+#1 siga abierta. C1–C9 completadas: contratos, registry, snippets, edición de imagen, vídeo
+Veo, adaptador dual, formulario controlado, ejemplos locales y estado compartible seguro.
 
 ## Hecho
 
@@ -16,7 +16,7 @@ Veo, adaptador dual, formulario controlado y ejemplos locales sin coste.
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación C8: lint, format, typecheck, 255 tests y build completos en verde.
+- Verificación C9: lint, format, typecheck, 263 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
@@ -38,10 +38,13 @@ Veo, adaptador dual, formulario controlado y ejemplos locales sin coste.
 - C8: el catálogo tipado cubre imagen, edición y vídeo para las familias iniciales con assets
   propios locales. “Usar ejemplo” hidrata draft y resultado sin invocar adaptadores; previews
   declaran alt/dimensiones y vídeo usa póster sin precargar el binario.
+- C9: la URL serializa solo configuración permitida, validada con Zod y registry; excluye
+  keys, uploads, resultados y operaciones. Hidrata antes del render, sincroniza popstate con
+  replaceState/debounce y ofrece diálogo nativo accesible con copy feedback.
 
 ## Siguiente acción
 
-Ejecutar C9: estado seguro por URL y diálogo de compartir accesible.
+Ejecutar C10: viewers, descarga segura e historial efímero con lifecycle de blobs.
 
 ## Pendientes del usuario
 

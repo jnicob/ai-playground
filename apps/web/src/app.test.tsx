@@ -1,8 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './app';
 import { createMockAdapter } from '@ai-playground/core';
+
+afterEach(() => history.replaceState({}, '', '/'));
 
 describe('App', () => {
   it('flujo completo: prompt → Generate → imagen mock + traza en tab API', async () => {
@@ -51,6 +53,36 @@ describe('App', () => {
       '/mocks/wide-1.webp',
     );
     expect(generate).not.toHaveBeenCalled();
+  });
+
+  it('hidrata la configuración inicial, reacciona a popstate y actualiza la URL con debounce', async () => {
+    history.replaceState(
+      {},
+      '',
+      '/?service=generate-image&provider=mock&model=flux&prompt=From+URL&aspect=square_1_1',
+    );
+    render(<App service={createMockAdapter({ latencyMs: 0 })} />);
+
+    expect(screen.getByLabelText('Prompt')).toHaveValue('From URL');
+
+    history.pushState(
+      {},
+      '',
+      '/?service=generate-image&provider=mock&model=flux&prompt=Back&aspect=square_1_1',
+    );
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(await screen.findByDisplayValue('Back')).toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText('Prompt'), ' forward');
+    await waitFor(() => expect(location.search).toContain('prompt=Back+forward'));
+  });
+
+  it('abre el diálogo de compartir con una URL segura', async () => {
+    render(<App service={createMockAdapter({ latencyMs: 0 })} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Share' }));
+
+    expect(screen.getByRole('dialog', { name: 'Share configuration' })).toBeInTheDocument();
   });
 });
 
