@@ -1,6 +1,8 @@
 export const MESSAGES = {
   en: {
     'app.title': 'AI Playground',
+    'toggle.locale': 'Language',
+    'toggle.theme': 'Theme',
     'service.generate-image': 'Generate image',
     'form.prompt': 'Prompt',
     'form.model': 'Model',
@@ -24,6 +26,8 @@ export const MESSAGES = {
   },
   es: {
     'app.title': 'AI Playground',
+    'toggle.locale': 'Idioma',
+    'toggle.theme': 'Tema',
     'service.generate-image': 'Generar imagen',
     'form.prompt': 'Prompt',
     'form.model': 'Modelo',

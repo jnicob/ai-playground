@@ -39,14 +39,14 @@ function Playground({ service }: { service: GenerationService }) {
           <button
             onClick={() => setLocale(locale === 'es' ? 'en' : 'es')}
             className="rounded-md border border-border px-2 py-1 text-sm text-muted"
-            aria-label="Locale"
+            aria-label={t('toggle.locale')}
           >
             {locale.toUpperCase()}
           </button>
           <button
             onClick={toggleTheme}
             className="rounded-md border border-border px-2 py-1 text-sm text-muted"
-            aria-label="Theme"
+            aria-label={t('toggle.theme')}
           >
             ◐
           </button>
