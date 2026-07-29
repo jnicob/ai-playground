@@ -2,8 +2,8 @@
 
 ## Ahora
 
-Fase A completada: walking skeleton end-to-end verde (43 tests). Pendiente publicar
-el repo en GitHub.
+Fase A completada y publicada: walking skeleton end-to-end verde (43 tests),
+repo público en `github.com/jnicob/ai-playground` con CI verde (2026-07-29).
 
 ## Hecho
 
@@ -20,9 +20,18 @@ el repo en GitHub.
 
 ## Siguiente acción
 
-Publicar el repo en `github.com:jnicob/ai-playground` con CI verde (Task 11).
-Plan de fase B (API task-based propia + conectores server-side) se escribe
-just-in-time cuando arranque, usando la spec de producto como entrada.
+Plan de fase B (API task-based propia + conectores server-side pollinations y
+google imagen + panel de keys pass-through) se escribe just-in-time cuando
+arranque, usando la spec de producto y el roadmap como entrada. Referencia de
+paridad de features: inventario privado del coordinador (fuera de este repo).
+
+## Backlog (no bloqueante)
+
+- Minors de fase A triados a fase B: `test.css.include` global; literales Zod vs
+  union types del registry; tests de unmount/resolve-tardío de `useGeneration`;
+  taskId en el label del step `status` de la traza; persistencia del toggle de tema.
+- CI: actions checkout/setup-node/pnpm apuntan a Node 20 (deprecado en runners);
+  subir versiones de las actions cuando haya release.
 
 ## Fuentes de verdad
 
