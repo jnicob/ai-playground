@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createMockAdapter } from './mock';
 import { MOCK_CATALOG } from './mock-catalog';
-import { ASPECT_RATIOS, type AspectRatio, type GenerationRequest } from '../types';
+import { ASPECT_RATIOS, type AspectRatio, type GenerateImageRequest } from '../types';
 import { PROVIDERS } from '../registry';
 
-const req = (over: Partial<GenerationRequest> = {}): GenerationRequest => ({
+const req = (over: Partial<GenerateImageRequest> = {}): GenerateImageRequest => ({
   service: 'generate-image',
   provider: 'mock',
   prompt: 'a red fox',

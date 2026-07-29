@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import type { PlaygroundMode, ProviderId } from './types';
 
-export type ServiceDefinition = { id: PlaygroundMode; labelKey: string };
+export type ServiceDefinition<Id extends PlaygroundMode = PlaygroundMode> = {
+  id: Id;
+  labelKey: string;
+};
 
 export type ProviderDefinition = {
   id: ProviderId;
@@ -11,7 +14,7 @@ export type ProviderDefinition = {
   models: Partial<Record<PlaygroundMode, readonly string[]>>;
 };
 
-export const SERVICES: readonly ServiceDefinition[] = [
+export const SERVICES: readonly ServiceDefinition<'generate-image'>[] = [
   { id: 'generate-image', labelKey: 'service.generate-image' },
 ];
 

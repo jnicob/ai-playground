@@ -1,9 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { API_KEY_HEADER, decodeTaskId, encodeTaskId, taskResponseSchema } from './api-contract';
+import {
+  API_KEY_HEADER,
+  decodeTaskId,
+  decodeTaskReference,
+  encodeOperationTaskId,
+  encodeTaskId,
+  serviceResponseSchema,
+  taskOutputSchema,
+  taskResponseSchema,
+} from './api-contract';
 import { API_ERROR_CODES, PlatformError, isFatalPlatformError } from './errors';
-import type { GenerationRequest } from './types';
+import type { GenerateImageRequest } from './types';
 
-const request: GenerationRequest = {
+const request: GenerateImageRequest = {
   service: 'generate-image',
   provider: 'pollinations',
   prompt: 'un zorro rojo en la nieve',
@@ -95,6 +104,128 @@ describe('task id codec', () => {
     }
     expect(thrown).toBeInstanceOf(PlatformError);
     expect((thrown as PlatformError).code).toBe('invalid_request');
+  });
+
+  it('decodifica los task ids v1 como una referencia discriminada compatible', () => {
+    expect(decodeTaskReference(encodeTaskId(request))).toEqual({
+      version: 'v1',
+      kind: 'request',
+      request,
+    });
+  });
+});
+
+describe('task id v2 para operaciones externas', () => {
+  const operation = {
+    service: 'generate-video' as const,
+    provider: 'google' as const,
+    operationName: 'models/veo-3.1-lite-generate-preview/operations/abc_123',
+  };
+
+  it('round-trip: conserva únicamente la referencia validada a la operación', () => {
+    const taskId = encodeOperationTaskId(operation);
+
+    expect(taskId).toMatch(/^v2\.[A-Za-z0-9_-]+$/);
+    expect(encodeURIComponent(taskId)).toBe(taskId);
+    expect(decodeTaskReference(taskId)).toEqual({
+      version: 'v2',
+      kind: 'operation',
+      ...operation,
+    });
+  });
+
+  it('es determinista para la misma operación', () => {
+    expect(encodeOperationTaskId(operation)).toBe(encodeOperationTaskId({ ...operation }));
+  });
+
+  it.each([
+    ['servicio distinto de vídeo', { ...operation, service: 'edit-image' }],
+    ['proveedor distinto de google', { ...operation, provider: 'mock' }],
+    ['nombre sin jerarquía', { ...operation, operationName: 'operations/abc' }],
+    [
+      'nombre excesivamente largo',
+      { ...operation, operationName: `models/veo/operations/${'a'.repeat(500)}` },
+    ],
+    ['campo secreto adicional', { ...operation, apiKey: 'secret-sentinel' }],
+    ['contenido de usuario adicional', { ...operation, sourceImage: 'base64-sentinel' }],
+  ])('rechaza %s', (_name, invalid) => {
+    expect(() => encodeOperationTaskId(invalid)).toThrowError(PlatformError);
+  });
+
+  it('decodeTaskId v1 rechaza una operación v2 en vez de fingir que es una request', () => {
+    expect(() => decodeTaskId(encodeOperationTaskId(operation))).toThrowError(PlatformError);
+  });
+
+  it.each(['v2.$$$', 'v2.e30', `v2.${'a'.repeat(4094)}`])(
+    'rechaza un task id v2 malformado o desmesurado: %s',
+    (taskId) => {
+      expect(() => decodeTaskReference(taskId)).toThrowError(PlatformError);
+    },
+  );
+});
+
+describe('taskOutputSchema', () => {
+  it.each([
+    { kind: 'image', url: 'https://example.test/result.webp', width: 1024, height: 1024 },
+    {
+      kind: 'image-pair',
+      before_url: 'data:image/png;base64,YQ==',
+      after_url: 'data:image/png;base64,Yg==',
+    },
+    {
+      kind: 'video',
+      download_url: '/v1/files/v2.abc',
+      poster_url: 'https://example.test/poster.webp',
+    },
+  ])('acepta un output $kind completo', (output) => {
+    expect(taskOutputSchema.parse(output)).toEqual(output);
+  });
+
+  it.each([
+    { kind: 'image-pair', before_url: 'before' },
+    { kind: 'video', download_url: '' },
+    { kind: 'audio', url: 'https://example.test/result.mp3' },
+    { kind: 'image', url: 'x', source_image: 'base64-sentinel' },
+  ])('rechaza outputs incompletos, desconocidos o con datos extra', (output) => {
+    expect(taskOutputSchema.safeParse(output).success).toBe(false);
+  });
+});
+
+describe('serviceResponseSchema', () => {
+  it('acepta edición síncrona completada sin inventar task_id', () => {
+    const response = {
+      status: 'COMPLETED',
+      provider: 'google',
+      elapsed_ms: 123,
+      output: {
+        kind: 'image-pair',
+        before_url: 'data:image/png;base64,YQ==',
+        after_url: 'data:image/png;base64,Yg==',
+      },
+    };
+
+    expect(serviceResponseSchema.parse(response)).toEqual(response);
+  });
+
+  it('acepta vídeo asíncrono con task_id', () => {
+    expect(
+      serviceResponseSchema.parse({
+        task_id: 'v2.abc',
+        status: 'IN_PROGRESS',
+      }),
+    ).toEqual({ task_id: 'v2.abc', status: 'IN_PROGRESS' });
+  });
+
+  it.each([
+    { status: 'IN_PROGRESS' },
+    { task_id: 'v2.abc', status: 'COMPLETED', provider: 'google', elapsed_ms: 1 },
+    {
+      task_id: 'v2.abc',
+      status: 'IN_PROGRESS',
+      output: { kind: 'video', download_url: '/v1/files/x' },
+    },
+  ])('rechaza estados POST contradictorios', (response) => {
+    expect(serviceResponseSchema.safeParse(response).success).toBe(false);
   });
 });
 

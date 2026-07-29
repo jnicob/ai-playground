@@ -2,8 +2,9 @@
 
 ## Ahora
 
-Fase C planificada y lista para implementar: edición de imagen y vídeo Google, ejemplos
-sin coste, share-by-URL, snippets, historial efímero y descarga segura.
+Fase C en curso en `feat/phase-c`. C1 completada: requests discriminadas, outputs
+`image`/`image-pair`/`video`, respuesta POST dual y codec `task_id` v2 para operaciones
+Google con compatibilidad v1.
 
 ## Hecho
 
@@ -16,11 +17,12 @@ sin coste, share-by-URL, snippets, historial efímero y descarga segura.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
 - Verificación fresca: lint, format, typecheck, 143 tests y build completos en verde.
+- C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
+  `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 
 ## Siguiente acción
 
-Ejecutar C1: contratos discriminados, outputs de edición/vídeo y `task_id` v2 compatible
-con v1.
+Ejecutar C2: registry de servicios, modelos, capacidades y costes verificados.
 
 ## Pendientes del usuario
 

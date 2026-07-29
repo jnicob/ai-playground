@@ -93,6 +93,12 @@ export function createPlatformAdapter(options: PlatformAdapterOptions): Generati
         const task = taskResponseSchema.parse(await polled.json());
         if (task.status === 'FAILED') throw new PlatformError(task.error.code, task.error.message);
         if (task.status === 'COMPLETED') {
+          if (task.output.kind !== 'image') {
+            throw new PlatformError(
+              'provider_error',
+              `Unsupported output kind "${task.output.kind}"`,
+            );
+          }
           apiTrace.push({ kind: 'completed', response: task });
           return {
             kind: 'image',

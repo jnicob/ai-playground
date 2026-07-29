@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** Planificada el 2026-07-29; implementación pendiente.
+**Status:** En curso en `feat/phase-c`; C1 completada.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -102,14 +102,14 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Convertir `GenerationRequest` en unión discriminada por `service`:
+- [x] Convertir `GenerationRequest` en unión discriminada por `service`:
       `generate-image`, `edit-image` y `generate-video`.
-- [ ] Añadir `sourceImage` solo al dominio efímero de edición; nunca al payload serializable.
-- [ ] Modelar resultados `image`, `image-pair` y `video` con schemas Zod estrictos.
-- [ ] Modelar respuesta POST como unión `200 COMPLETED | 202 IN_PROGRESS`.
-- [ ] Crear `task_id` v2 para `{ kind: "operation", service, provider, operation_name }`.
-- [ ] Mantener decode de v1 para las URLs/tareas existentes y rechazar versiones desconocidas.
-- [ ] Limitar longitud y patrón de `operation_name`; probar Unicode, corrupción, exceso de
+- [x] Añadir `sourceImage` solo al dominio efímero de edición; nunca al payload serializable.
+- [x] Modelar resultados `image`, `image-pair` y `video` con schemas Zod estrictos.
+- [x] Modelar respuesta POST como unión `200 COMPLETED | 202 IN_PROGRESS`.
+- [x] Crear `task_id` v2 para `{ kind: "operation", service, provider, operation_name }`.
+- [x] Mantener decode de v1 para las URLs/tareas existentes y rechazar versiones desconocidas.
+- [x] Limitar longitud y patrón de `operation_name`; probar Unicode, corrupción, exceso de
       tamaño y ausencia de secretos.
 
 **Commit:** `feat: amplía contratos para edición y vídeo`

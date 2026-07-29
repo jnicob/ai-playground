@@ -3,17 +3,17 @@ import { useI18n } from '@/i18n/i18n';
 import {
   ASPECT_RATIOS,
   type AspectRatio,
-  type GenerationRequest,
+  type GenerateImageRequest,
   type ProviderDefinition,
   type ServiceDefinition,
 } from '@ai-playground/core';
 
 type Props = {
-  service: ServiceDefinition;
+  service: ServiceDefinition<'generate-image'>;
   provider: ProviderDefinition;
   busy: boolean;
   disabled?: boolean;
-  onGenerate: (request: GenerationRequest) => void;
+  onGenerate: (request: GenerateImageRequest) => void;
 };
 
 const MAX_SEED = 999_999;
