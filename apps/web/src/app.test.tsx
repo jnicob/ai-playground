@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event';
 import App from './app';
 import { createMockAdapter } from '@ai-playground/core';
 
-afterEach(() => history.replaceState({}, '', '/'));
+afterEach(() => {
+  history.replaceState({}, '', '/');
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe('App', () => {
   it('flujo completo: prompt → Generate → imagen mock + traza en tab API', async () => {
@@ -101,6 +105,46 @@ describe('App', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
     expect(screen.queryByRole('img', { name: 'Generated image' })).not.toBeInTheDocument();
+  });
+
+  it('flujo integrado mock: ejemplo → edición → descarga → historial → vídeo', async () => {
+    const service = createMockAdapter({ latencyMs: 0 });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        ok: true,
+        blob: async () => new Blob(['image'], { type: 'image/webp' }),
+      })),
+    );
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:download');
+    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    render(<App service={service} />);
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Use example' })[0]!);
+    await userEvent.click(screen.getByRole('button', { name: 'Edit image' }));
+    await userEvent.type(screen.getByLabelText('Prompt'), 'Turn it blue');
+    const png = new File(
+      [new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])],
+      'source.png',
+      { type: 'image/png' },
+    );
+    await userEvent.upload(screen.getByLabelText('Source image'), png);
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    expect(await screen.findByRole('img', { name: 'Edited image' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Download' }));
+    expect(await screen.findByText('Download ready')).toBeInTheDocument();
+    expect(screen.getByText(/mock-edit-v1 · completed/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Generate video' }));
+    await userEvent.clear(screen.getByLabelText('Prompt'));
+    await userEvent.type(screen.getByLabelText('Prompt'), 'Aurora over water');
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
+
+    expect(await screen.findByLabelText('Generated video')).toBeInTheDocument();
+    expect(screen.getByText(/mock-video-v1 · completed/i)).toBeInTheDocument();
+    expect(createObjectUrl).toHaveBeenCalled();
+    expect(revokeObjectUrl).toHaveBeenCalled();
   });
 });
 

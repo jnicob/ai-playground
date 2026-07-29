@@ -140,4 +140,15 @@ describe('ResultPanel', () => {
     expect(onDownload).toHaveBeenCalledWith(success.result);
     expect(screen.getByRole('status')).toHaveTextContent('Download ready');
   });
+
+  it('permite recorrer las tabs con flechas y expone el tabpanel', async () => {
+    wrap(success);
+    const preview = screen.getByRole('tab', { name: 'Preview' });
+    preview.focus();
+
+    await userEvent.keyboard('{ArrowRight}');
+
+    expect(screen.getByRole('tab', { name: 'API' })).toHaveFocus();
+    expect(screen.getByRole('tabpanel', { name: 'API' })).toBeInTheDocument();
+  });
 });

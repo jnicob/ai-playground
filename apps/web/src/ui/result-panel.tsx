@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import { useI18n } from '@/i18n/i18n';
 import { ApiTraceView } from './api-trace-view';
 import type { GenerationState } from './use-generation';
@@ -19,6 +19,7 @@ export function ResultPanel({
 }: Props) {
   const { t } = useI18n();
   const [tab, setTab] = useState<TabId>('preview');
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [downloadStatus, setDownloadStatus] = useState('');
   const tabs: { id: TabId; label: string }[] = [
     { id: 'preview', label: t('result.tab.preview') },
@@ -36,15 +37,36 @@ export function ResultPanel({
     }
   }
 
+  function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let nextIndex: number | undefined;
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'Home') nextIndex = 0;
+    if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (nextIndex === undefined) return;
+    const nextTab = tabs[nextIndex];
+    if (!nextTab) return;
+    event.preventDefault();
+    setTab(nextTab.id);
+    tabRefs.current[nextIndex]?.focus();
+  }
+
   return (
     <section className="flex flex-col gap-3">
       <div role="tablist" className="flex gap-1 border-b border-border">
-        {tabs.map(({ id, label }) => (
+        {tabs.map(({ id, label }, index) => (
           <button
             key={id}
+            ref={(element) => {
+              tabRefs.current[index] = element;
+            }}
+            id={`${id}-tab`}
             role="tab"
             aria-selected={tab === id}
+            aria-controls={`${id}-panel`}
+            tabIndex={tab === id ? 0 : -1}
             onClick={() => setTab(id)}
+            onKeyDown={(event) => handleTabKey(event, index)}
             className="px-3 py-1.5 text-sm text-muted aria-selected:border-b-2 aria-selected:border-accent aria-selected:text-fg"
           >
             {label}
@@ -52,7 +74,7 @@ export function ResultPanel({
         ))}
       </div>
       {tab === 'preview' && (
-        <div>
+        <div id="preview-panel" role="tabpanel" aria-labelledby="preview-tab" tabIndex={0}>
           {state.status === 'idle' && <p className="text-muted">{t('result.empty')}</p>}
           {state.status === 'loading' && (
             <div role="status" aria-live="polite">
@@ -141,7 +163,11 @@ export function ResultPanel({
           )}
         </div>
       )}
-      {tab === 'api' && <ApiTraceView trace={result?.apiTrace ?? []} />}
+      {tab === 'api' && (
+        <div id="api-panel" role="tabpanel" aria-labelledby="api-tab" tabIndex={0}>
+          <ApiTraceView trace={result?.apiTrace ?? []} />
+        </div>
+      )}
     </section>
   );
 }

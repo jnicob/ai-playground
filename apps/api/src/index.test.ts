@@ -222,6 +222,34 @@ describe('GET /v1/tasks/:taskId', () => {
     expect(res.status).toBe(428);
   });
 
+  it.each([
+    [403, 401, 'invalid_api_key'],
+    [429, 429, 'rate_limited'],
+  ])('mapea Google %i a HTTP %i con código %s', async (providerStatus, status, code) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: { message: 'provider rejected request' } }), {
+            status: providerStatus,
+            headers: { 'content-type': 'application/json' },
+          }),
+      ),
+    );
+    const googleId = encodeTaskId({
+      ...request,
+      provider: 'google',
+      model: 'gemini-2.5-flash-image',
+    });
+
+    const res = await app.request(`/v1/tasks/${googleId}`, {
+      headers: { [API_KEY_HEADER]: 'personal-key-placeholder' },
+    });
+
+    expect(res.status).toBe(status);
+    expect(await res.json()).toMatchObject({ error: { code } });
+  });
+
   it('devuelve 422 content_blocked cuando google bloquea el contenido por seguridad (200 sin imagen)', async () => {
     vi.stubGlobal(
       'fetch',

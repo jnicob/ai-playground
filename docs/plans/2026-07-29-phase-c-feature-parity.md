@@ -4,8 +4,9 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C10 completadas. La rama está apilada
-sobre `feat/phase-c` mientras la PR #1 siga abierta.
+**Status:** En curso en `feat/phase-c-continuation`; C1–C10 completadas y C11 cubierta salvo
+los smoke live de pago, pendientes de autorización. La rama está apilada sobre `feat/phase-c`
+mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -329,14 +330,18 @@ duplicar binarios. Su procedencia y licencia quedan registradas en el `README.md
 
 **Entregables:**
 
-- [ ] Flujo mock completo de imagen, edición y vídeo.
-- [ ] Ejemplo → edición → resultado → descarga → historial.
-- [ ] URL → hidratación → cambio → back/forward → copy.
-- [ ] Snippets fieles para los tres servicios y sin secretos.
-- [ ] Estados 428/401/429/5xx, timeout, aborto y contenido bloqueado.
-- [ ] Navegación solo teclado, lector de pantalla y reduced motion.
+- [x] Flujo mock completo de imagen, edición y vídeo.
+- [x] Ejemplo → edición → resultado → descarga → historial.
+- [x] URL → hidratación → cambio → back/forward → copy.
+- [x] Snippets fieles para los tres servicios y sin secretos.
+- [x] Estados 428/401/429/5xx, timeout, aborto y contenido bloqueado.
+- [x] Navegación solo teclado, lector de pantalla y reduced motion.
 - [ ] Smoke live opt-in con key personal: una edición económica y un Veo Lite 4 s/720p,
       mostrando estimación antes de confirmar.
+
+No existe harness E2E en el repositorio, por lo que no se añade un framework en esta fase. El
+smoke manual mock y el procedimiento live opt-in están en `docs/testing/phase-c-smoke.md`. La
+ejecución live sigue bloqueada hasta recibir autorización explícita para USD 0.0336 + USD 0.20.
 
 **Commit:** `test: cubre flujos completos de fase c`
 

@@ -35,6 +35,7 @@ const DIRECT_TASK_ERROR_CODES: readonly ApiErrorCode[] = [
   'missing_api_key',
   'invalid_api_key',
   'content_blocked',
+  'rate_limited',
   'unsupported_provider',
 ];
 

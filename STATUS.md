@@ -3,8 +3,8 @@
 ## Ahora
 
 Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
-#1 siga abierta. C1–C10 completadas: contratos, registry, snippets, edición de imagen, vídeo
-Veo, adaptador dual, formulario, ejemplos, estado compartible, viewers, descarga e historial.
+#1 siga abierta. C1–C10 completadas y C11 cubierta salvo los smoke live de pago: contratos,
+registry, snippets, los tres servicios, share, viewers, descarga, historial e integración.
 
 ## Hecho
 
@@ -16,7 +16,7 @@ Veo, adaptador dual, formulario, ejemplos, estado compartible, viewers, descarga
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación C10: lint, format, typecheck, 274 tests y build completos en verde.
+- Verificación C11: lint, format, typecheck, 279 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
@@ -44,10 +44,13 @@ Veo, adaptador dual, formulario, ejemplos, estado compartible, viewers, descarga
 - C10: los viewers cubren imagen, antes/después y vídeo nativo. La descarga valida MIME,
   tamaño y filename mediante Blob temporal. El historial en memoria limita a 20, elimina
   uploads/trazas/URLs sensibles y libera object URLs al expulsar, borrar o desmontar.
+- C11: integración mock cubre ejemplo → edición → descarga → historial → vídeo; URL/share,
+  snippets y errores están cubiertos. Tabs usan flechas/tabpanel, hay foco visible y reduced
+  motion. Se corrigió el 429 de polling para conservar el backoff del adapter.
 
 ## Siguiente acción
 
-Ejecutar C11: integración completa, accesibilidad y E2E de los tres servicios.
+Ejecutar C12: documentación final y cierre condicionado a los smoke live autorizados.
 
 ## Pendientes del usuario
 
