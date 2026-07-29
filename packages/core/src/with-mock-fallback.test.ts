@@ -44,4 +44,18 @@ describe('withMockFallback', () => {
     controller.abort();
     await expect(promise).rejects.toThrow(/abort/i);
   });
+  it('si el CALLER aborta DESPUÉS del timeout pero ANTES de que el mock del fallback resuelva, rechaza con abort sin degradar', async () => {
+    const never = stub((_r, signal) => new Promise((_res, rej) =>
+      signal?.addEventListener('abort', () => rej(new DOMException('Aborted', 'AbortError'))),
+    ));
+    const slowMock = stub((_r, signal) => new Promise((_res, rej) =>
+      signal?.addEventListener('abort', () => rej(new DOMException('Aborted', 'AbortError'))),
+    ));
+    const callerController = new AbortController();
+    const svc = withMockFallback(never, slowMock, 20_000);
+    const promise = svc.generate(REQ, callerController.signal);
+    await vi.advanceTimersByTimeAsync(20_001); // dispara el timeout interno: arranca el fallback al mock, que queda pendiente
+    callerController.abort(); // el caller aborta mientras el mock del fallback todavía no resolvió
+    await expect(promise).rejects.toThrow(/abort/i);
+  });
 });
