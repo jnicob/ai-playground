@@ -37,6 +37,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@ai-playground/core':
+        specifier: workspace:^
+        version: link:../../packages/core
       hono:
         specifier: ^4.12.32
         version: 4.12.32
