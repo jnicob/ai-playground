@@ -32,7 +32,7 @@ type GenerationMeta = {
 
 export type GenerationResult = GenerationMeta &
   (
-    | { kind: 'image'; url: string; width: number; height: number }
+    | { kind: 'image'; url: string; width?: number; height?: number }
     | { kind: 'image-pair'; before: string; after: string }
     | { kind: 'video'; url: string; poster: string }
   );

@@ -19,7 +19,7 @@ export const PROVIDERS: readonly ProviderDefinition[] = [
 
 export const generationRequestSchema = z.object({
   service: z.literal('generate-image'),
-  provider: z.literal('mock'),
+  provider: z.enum(['mock', 'pollinations', 'google']),
   prompt: z.string().trim().min(1).max(1000),
   model: z.string().min(1),
   aspectRatio: z.enum(['square_1_1', 'widescreen_16_9', 'vertical_9_16']),
