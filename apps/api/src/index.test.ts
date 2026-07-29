@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { API_KEY_HEADER, decodeTaskId, encodeTaskId } from '@ai-playground/core';
+import { API_ERROR_CODES, API_KEY_HEADER, decodeTaskId, encodeTaskId } from '@ai-playground/core';
 import { app } from './index';
 
 const request = {
@@ -83,6 +83,17 @@ describe('POST /v1/services/:service', () => {
     });
     expect(res.status).toBe(202);
   });
+
+  it('rechaza el proveedor mock con 400 unsupported_provider: no tiene conector HTTP y su GET nunca completaría', async () => {
+    const res = await post(body({ provider: 'mock' }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ error: { code: 'unsupported_provider' } });
+  });
+
+  it('sigue aceptando pollinations (sin key)', async () => {
+    const res = await post(body({ provider: 'pollinations' }));
+    expect(res.status).toBe(202);
+  });
 });
 
 describe('GET /v1/tasks/:taskId', () => {
@@ -163,6 +174,29 @@ describe('GET /v1/tasks/:taskId', () => {
     const res = await app.request(`/v1/tasks/${googleId}`);
     expect(res.status).toBe(428);
   });
+
+  it('devuelve 422 content_blocked cuando google bloquea el contenido por seguridad (200 sin imagen)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ candidates: [{ content: { parts: [] } }] }), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+      ),
+    );
+    const googleId = encodeTaskId({
+      ...request,
+      provider: 'google',
+      model: 'gemini-2.5-flash-image',
+    });
+    const res = await app.request(`/v1/tasks/${googleId}`, {
+      headers: { [API_KEY_HEADER]: 'k' },
+    });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toMatchObject({ error: { code: 'content_blocked' } });
+  });
 });
 
 describe('CORS y OpenAPI', () => {
@@ -189,5 +223,55 @@ describe('CORS y OpenAPI', () => {
     expect(Object.keys(spec.paths)).toEqual(
       expect.arrayContaining(['/v1/services/{service}', '/v1/tasks/{task_id}']),
     );
+  });
+
+  it('documenta 401 (key inválida) y 422 (contenido bloqueado) en GET /v1/tasks/{task_id}', async () => {
+    const res = await app.request('/openapi.json');
+    type OpenApiOperation = { responses: Record<string, unknown> };
+    type OpenApiDoc = { paths: { '/v1/tasks/{task_id}': { get: OpenApiOperation } } };
+    const spec = (await res.json()) as OpenApiDoc;
+    const responseCodes = Object.keys(spec.paths['/v1/tasks/{task_id}'].get.responses);
+    expect(responseCodes).toEqual(expect.arrayContaining(['401', '422']));
+  });
+
+  it('no lista mock como provider expuesto y el enum de error codes coincide con API_ERROR_CODES', async () => {
+    const res = await app.request('/openapi.json');
+    type ProviderSchema = { enum: string[] };
+    type RequestBodySchema = { properties: { provider: ProviderSchema } };
+    type ErrorCodeSchema = { enum: string[] };
+    type ErrorBodySchema = { properties: { error: { properties: { code: ErrorCodeSchema } } } };
+    type OpenApiDoc = {
+      paths: {
+        '/v1/services/{service}': {
+          post: {
+            requestBody: { content: { 'application/json': { schema: RequestBodySchema } } };
+            responses: { '400': { content: { 'application/json': { schema: ErrorBodySchema } } } };
+          };
+        };
+      };
+    };
+    const spec = (await res.json()) as OpenApiDoc;
+    const postOp = spec.paths['/v1/services/{service}'].post;
+    const providerEnum =
+      postOp.requestBody.content['application/json'].schema.properties.provider.enum;
+    expect(providerEnum).not.toContain('mock');
+    expect(providerEnum.sort()).toEqual(['google', 'pollinations'].sort());
+
+    const errorCodeEnum =
+      postOp.responses['400'].content['application/json'].schema.properties.error.properties.code
+        .enum;
+    expect(errorCodeEnum.sort()).toEqual([...API_ERROR_CODES].sort());
+  });
+
+  it('la descripción del 400 en POST /v1/services/{service} cubre unsupported_provider', async () => {
+    const res = await app.request('/openapi.json');
+    type OpenApiDoc = {
+      paths: {
+        '/v1/services/{service}': { post: { responses: { '400': { description: string } } } };
+      };
+    };
+    const spec = (await res.json()) as OpenApiDoc;
+    const description = spec.paths['/v1/services/{service}'].post.responses['400'].description;
+    expect(description).toMatch(/unsupported_provider/i);
   });
 });

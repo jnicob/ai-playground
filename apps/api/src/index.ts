@@ -20,11 +20,12 @@ app.use('/v1/*', cors({ origin: '*', allowHeaders: ['content-type', API_KEY_HEAD
 app.get('/health', (c) => c.json({ status: 'ok', service: 'ai-playground-api' }));
 app.get('/openapi.json', (c) => c.json(openApiDocument));
 
-const STATUS_BY_CODE: Partial<Record<ApiErrorCode, 400 | 401 | 428>> = {
+const STATUS_BY_CODE: Partial<Record<ApiErrorCode, 400 | 401 | 422 | 428>> = {
   invalid_request: 400,
   unsupported_provider: 400,
-  missing_api_key: 428,
   invalid_api_key: 401,
+  content_blocked: 422,
+  missing_api_key: 428,
 };
 
 function errorResponse(error: PlatformError) {
@@ -58,6 +59,7 @@ app.post('/v1/services/:service', async (c) => {
     });
     if (!parsed.success) throw new PlatformError('invalid_request', 'Invalid generation request');
     request = parsed.data;
+    connectorFor(request.provider);
     assertKeyIfRequired(request, c.req.header(API_KEY_HEADER));
   } catch (error) {
     const platform =

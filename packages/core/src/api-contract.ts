@@ -38,7 +38,13 @@ export function encodeTaskId(request: GenerationRequest): string {
   return `${TASK_ID_PREFIX}${toBase64Url(canonical(result.data))}`;
 }
 
+/** Guarda de longitud: rechaza ids desmesurados antes de gastar el coste de decodificarlos. */
+const MAX_TASK_ID_LENGTH = 4096;
+
 export function decodeTaskId(taskId: string): GenerationRequest {
+  if (taskId.length > MAX_TASK_ID_LENGTH) {
+    throw new PlatformError('invalid_request', 'Task id exceeds maximum length');
+  }
   if (!taskId.startsWith(TASK_ID_PREFIX)) {
     throw new PlatformError('invalid_request', 'Unsupported task id version');
   }

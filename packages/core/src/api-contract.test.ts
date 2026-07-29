@@ -61,6 +61,30 @@ describe('task id codec', () => {
     expect(roundTrippedId).toBe(firstId);
   });
 
+  it('rechaza un task id de más de 4096 caracteres con PlatformError invalid_request antes de decodificar, aunque el payload sea por lo demás válido', () => {
+    // Payload que, salvo por el tamaño, decodificaría con éxito (JSON válido, schema válido:
+    // el campo "padding" extra es ignorado por zod). Así el test prueba el guard de longitud
+    // en sí, no un fallo incidental de JSON.parse/schema en basura aleatoria.
+    const toBase64Url = (input: string): string => {
+      const bytes = new TextEncoder().encode(input);
+      let binary = '';
+      for (const byte of bytes) binary += String.fromCharCode(byte);
+      return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    };
+    const oversizedPayload = JSON.stringify({ ...request, padding: 'a'.repeat(4000) });
+    const oversized = `v1.${toBase64Url(oversizedPayload)}`;
+    expect(oversized.length).toBeGreaterThan(4096);
+
+    let thrown: unknown;
+    try {
+      decodeTaskId(oversized);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(PlatformError);
+    expect((thrown as PlatformError).code).toBe('invalid_request');
+  });
+
   it('encodeTaskId rechaza una request inválida con PlatformError invalid_request', () => {
     const invalid = { ...request, prompt: '   ' };
     let thrown: unknown;

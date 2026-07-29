@@ -1,4 +1,7 @@
-import { API_KEY_HEADER, SERVICES } from '@ai-playground/core';
+import { API_ERROR_CODES, API_KEY_HEADER, SERVICES } from '@ai-playground/core';
+
+/** Proveedores expuestos por HTTP; mock corre client-side y no tiene conector server-side. */
+const HTTP_PROVIDERS = ['pollinations', 'google'] as const;
 
 const taskOutput = {
   type: 'object',
@@ -18,7 +21,10 @@ const errorBody = {
     error: {
       type: 'object',
       required: ['code', 'message'],
-      properties: { code: { type: 'string' }, message: { type: 'string' } },
+      properties: {
+        code: { type: 'string', enum: API_ERROR_CODES },
+        message: { type: 'string' },
+      },
     },
   },
 } as const;
@@ -66,7 +72,7 @@ export const openApiDocument = {
                 type: 'object',
                 required: ['provider', 'prompt', 'model', 'aspect_ratio', 'seed'],
                 properties: {
-                  provider: { type: 'string', enum: ['mock', 'pollinations', 'google'] },
+                  provider: { type: 'string', enum: HTTP_PROVIDERS },
                   prompt: { type: 'string', minLength: 1, maxLength: 1000 },
                   model: { type: 'string' },
                   aspect_ratio: {
@@ -96,7 +102,8 @@ export const openApiDocument = {
             },
           },
           '400': {
-            description: 'Invalid request',
+            description:
+              'Invalid request, or unsupported_provider (the provider has no HTTP connector, e.g. mock, which runs client-side only)',
             content: { 'application/json': { schema: errorBody } },
           },
           '428': {
@@ -135,6 +142,14 @@ export const openApiDocument = {
           },
           '400': {
             description: 'Malformed task id',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '401': {
+            description: 'Invalid provider API key',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '422': {
+            description: 'Content blocked by the provider',
             content: { 'application/json': { schema: errorBody } },
           },
           '428': {
