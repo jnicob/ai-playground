@@ -492,13 +492,13 @@ describe('CORS y OpenAPI', () => {
     );
   });
 
-  it('documenta 401 (key inválida) y 422 (contenido bloqueado) en GET /v1/tasks/{task_id}', async () => {
+  it('documenta 401, 422 y 429 en GET /v1/tasks/{task_id}', async () => {
     const res = await app.request('/openapi.json');
     type OpenApiOperation = { responses: Record<string, unknown> };
     type OpenApiDoc = { paths: { '/v1/tasks/{task_id}': { get: OpenApiOperation } } };
     const spec = (await res.json()) as OpenApiDoc;
     const responseCodes = Object.keys(spec.paths['/v1/tasks/{task_id}'].get.responses);
-    expect(responseCodes).toEqual(expect.arrayContaining(['401', '422']));
+    expect(responseCodes).toEqual(expect.arrayContaining(['401', '422', '429']));
   });
 
   it('no lista mock como provider expuesto y el enum de error codes coincide con API_ERROR_CODES', async () => {

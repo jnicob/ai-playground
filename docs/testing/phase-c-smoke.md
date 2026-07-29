@@ -4,6 +4,8 @@
 
 - Flujo mock de imagen, edición, vídeo, descarga, historial y share: cubierto por la suite
   automatizada.
+- Smoke de producción local 2026-07-29: Worker `/health` 200, OpenAPI 3.1 con cuatro
+  rutas, preview web servido y asset de vídeo mock descargado correctamente.
 - Smoke live de edición y Veo: pendiente de autorización explícita y key personal. No se ejecuta
   automáticamente ni forma parte de CI.
 

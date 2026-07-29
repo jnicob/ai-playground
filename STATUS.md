@@ -2,9 +2,9 @@
 
 ## Ahora
 
-Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
-#1 siga abierta. C1–C10 completadas y C11 cubierta salvo los smoke live de pago: contratos,
-registry, snippets, los tres servicios, share, viewers, descarga, historial e integración.
+Implementación C1–C12 completada en `feat/phase-c-continuation`, apilada sobre `feat/phase-c`
+mientras la PR #1 siga abierta. El cierre formal de C queda pendiente solo de los smoke live
+de pago con key personal y autorización explícita.
 
 ## Hecho
 
@@ -16,7 +16,7 @@ registry, snippets, los tres servicios, share, viewers, descarga, historial e in
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación C11: lint, format, typecheck, 279 tests y build completos en verde.
+- Verificación C12: lint, format, typecheck, 279 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
@@ -47,10 +47,14 @@ registry, snippets, los tres servicios, share, viewers, descarga, historial e in
 - C11: integración mock cubre ejemplo → edición → descarga → historial → vídeo; URL/share,
   snippets y errores están cubiertos. Tabs usan flechas/tabpanel, hay foco visible y reduced
   motion. Se corrigió el 429 de polling para conservar el backoff del adapter.
+- C12: README, spec, roadmap, privacidad y OpenAPI reflejan la ejecución dual, Veo y sus
+  costes/límites. Smoke de producción local: `/health` 200, OpenAPI válida, preview y asset
+  de vídeo mock servidos correctamente.
 
 ## Siguiente acción
 
-Ejecutar C12: documentación final y cierre condicionado a los smoke live autorizados.
+Obtener autorización para los smoke live (edición Lite USD 0.0336 + Veo Lite 4 s USD 0.20);
+si pasan, marcar C hecha y abrir la Fase D.
 
 ## Pendientes del usuario
 

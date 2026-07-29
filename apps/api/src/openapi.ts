@@ -239,6 +239,10 @@ export const openApiDocument = {
             description: 'Provider API key required',
             content: { 'application/json': { schema: errorBody } },
           },
+          '429': {
+            description: 'Provider rate limit reached; clients should retry with backoff',
+            content: { 'application/json': { schema: errorBody } },
+          },
         },
       },
     },
@@ -274,6 +278,14 @@ export const openApiDocument = {
           },
           '428': {
             description: 'Provider API key required',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '401': {
+            description: 'Invalid provider API key',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '429': {
+            description: 'Provider rate limit reached',
             content: { 'application/json': { schema: errorBody } },
           },
           '502': {

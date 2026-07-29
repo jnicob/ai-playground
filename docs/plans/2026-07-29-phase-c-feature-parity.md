@@ -4,9 +4,9 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C10 completadas y C11 cubierta salvo
-los smoke live de pago, pendientes de autorización. La rama está apilada sobre `feat/phase-c`
-mientras la PR #1 siga abierta.
+**Status:** Implementación C1–C12 completada en `feat/phase-c-continuation`; el cierre formal
+de C sigue pendiente de los smoke live de pago y su autorización. La rama está apilada sobre
+`feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -357,11 +357,11 @@ ejecución live sigue bloqueada hasta recibir autorización explícita para USD 
 
 **Entregables:**
 
-- [ ] Enmendar la spec con ejecución dual, coste real y límites de vídeo.
-- [ ] Documentar configuración de key/billing sin publicar ninguna key.
-- [ ] Actualizar OpenAPI y verificarlo contra los schemas runtime.
-- [ ] Documentar privacidad: qué sale del navegador, qué no se persiste y cómo borrar la key.
-- [ ] Ejecutar suite completa y smoke de producción local; anotar comandos y resultados.
+- [x] Enmendar la spec con ejecución dual, coste real y límites de vídeo.
+- [x] Documentar configuración de key/billing sin publicar ninguna key.
+- [x] Actualizar OpenAPI y verificarlo contra los schemas runtime.
+- [x] Documentar privacidad: qué sale del navegador, qué no se persiste y cómo borrar la key.
+- [x] Ejecutar suite completa y smoke de producción local; anotar comandos y resultados.
 - [ ] Marcar C hecha y dejar D como siguiente acción en roadmap/STATUS.
 
 **Commit:** `docs: cierra fase c`
@@ -377,13 +377,13 @@ ejecución live sigue bloqueada hasta recibir autorización explícita para USD 
 
 ## Definition of Done
 
-- [ ] Los tres servicios funcionan con mock; edición y vídeo Google pasan tests contractuales.
+- [x] Los tres servicios funcionan con mock; edición y vídeo Google pasan tests contractuales.
 - [ ] Al menos un smoke live opt-in de edición y uno de Veo Lite completan con key personal.
-- [ ] Ninguna key, imagen subida o URL sensible aparece en Git, logs, task IDs, share URL,
+- [x] Ninguna key, imagen subida o URL sensible aparece en Git, logs, task IDs, share URL,
       snippets o historial.
-- [ ] Snippets y OpenAPI coinciden con requests reales.
-- [ ] Descargas funcionan y no quedan object URLs vivos.
-- [ ] URL compartida restaura únicamente estado seguro.
-- [ ] Español/inglés en paridad y flujos críticos utilizables solo con teclado.
-- [ ] Lint, format, typecheck, tests y build pasan desde checkout limpio.
-- [ ] `README`, spec, roadmap y `STATUS.md` reflejan el producto real.
+- [x] Snippets y OpenAPI coinciden con requests reales.
+- [x] Descargas funcionan y no quedan object URLs vivos.
+- [x] URL compartida restaura únicamente estado seguro.
+- [x] Español/inglés en paridad y flujos críticos utilizables solo con teclado.
+- [x] Lint, format, typecheck, tests y build pasan desde checkout limpio.
+- [x] `README`, spec, roadmap y `STATUS.md` reflejan el producto real.
