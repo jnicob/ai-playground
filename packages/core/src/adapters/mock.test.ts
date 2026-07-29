@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createMockAdapter } from './mock';
 import { MOCK_CATALOG } from './mock-catalog';
 import { ASPECT_RATIOS, type AspectRatio, type GenerationRequest } from '../types';
@@ -54,5 +54,19 @@ describe('mock adapter', () => {
     const promise = slow.generate(req(), controller.signal);
     controller.abort();
     await expect(promise).rejects.toThrow(/abort/i);
+  });
+  it('no acumula listeners de abort en el signal tras un generate() exitoso', async () => {
+    const controller = new AbortController();
+    const addSpy = vi.spyOn(controller.signal, 'addEventListener');
+    const removeSpy = vi.spyOn(controller.signal, 'removeEventListener');
+
+    await adapter.generate(req(), controller.signal);
+
+    const abortAdds = addSpy.mock.calls.filter(([type]) => type === 'abort');
+    const abortRemoves = removeSpy.mock.calls.filter(([type]) => type === 'abort');
+    expect(abortRemoves.length).toBe(abortAdds.length);
+    for (const [, handler] of abortAdds) {
+      expect(removeSpy.mock.calls.some(([, h]) => h === handler)).toBe(true);
+    }
   });
 });

@@ -17,11 +17,15 @@ function hashString(input: string): number {
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) return reject(new DOMException('Aborted', 'AbortError'));
-    const timer = setTimeout(() => resolve(), ms);
-    signal?.addEventListener('abort', () => {
+    const onAbort = (): void => {
       clearTimeout(timer);
       reject(new DOMException('Aborted', 'AbortError'));
-    });
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 }
 
