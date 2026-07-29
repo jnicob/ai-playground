@@ -84,6 +84,24 @@ describe('App', () => {
 
     expect(screen.getByRole('dialog', { name: 'Share configuration' })).toBeInTheDocument();
   });
+
+  it('registra resultados en historial y los restaura sin relanzar', async () => {
+    const service = createMockAdapter({ latencyMs: 0 });
+    const generate = vi.spyOn(service, 'generate');
+    render(<App service={service} />);
+
+    await userEvent.type(screen.getByLabelText('Prompt'), 'History fox');
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    expect(await screen.findByText(/flux · completed/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Restore result' }));
+
+    expect(screen.getByRole('img', { name: 'Generated image' })).toBeInTheDocument();
+    expect(generate).toHaveBeenCalledOnce();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    expect(screen.queryByRole('img', { name: 'Generated image' })).not.toBeInTheDocument();
+  });
 });
 
 describe('App con proveedores live', () => {

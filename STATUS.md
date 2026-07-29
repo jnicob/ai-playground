@@ -3,8 +3,8 @@
 ## Ahora
 
 Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
-#1 siga abierta. C1–C9 completadas: contratos, registry, snippets, edición de imagen, vídeo
-Veo, adaptador dual, formulario controlado, ejemplos locales y estado compartible seguro.
+#1 siga abierta. C1–C10 completadas: contratos, registry, snippets, edición de imagen, vídeo
+Veo, adaptador dual, formulario, ejemplos, estado compartible, viewers, descarga e historial.
 
 ## Hecho
 
@@ -16,7 +16,7 @@ Veo, adaptador dual, formulario controlado, ejemplos locales y estado compartibl
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación C9: lint, format, typecheck, 263 tests y build completos en verde.
+- Verificación C10: lint, format, typecheck, 274 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
@@ -41,10 +41,13 @@ Veo, adaptador dual, formulario controlado, ejemplos locales y estado compartibl
 - C9: la URL serializa solo configuración permitida, validada con Zod y registry; excluye
   keys, uploads, resultados y operaciones. Hidrata antes del render, sincroniza popstate con
   replaceState/debounce y ofrece diálogo nativo accesible con copy feedback.
+- C10: los viewers cubren imagen, antes/después y vídeo nativo. La descarga valida MIME,
+  tamaño y filename mediante Blob temporal. El historial en memoria limita a 20, elimina
+  uploads/trazas/URLs sensibles y libera object URLs al expulsar, borrar o desmontar.
 
 ## Siguiente acción
 
-Ejecutar C10: viewers, descarga segura e historial efímero con lifecycle de blobs.
+Ejecutar C11: integración completa, accesibilidad y E2E de los tres servicios.
 
 ## Pendientes del usuario
 

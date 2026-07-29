@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C9 completadas. La rama está apilada
+**Status:** En curso en `feat/phase-c-continuation`; C1–C10 completadas. La rama está apilada
 sobre `feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
@@ -308,12 +308,12 @@ duplicar binarios. Su procedencia y licencia quedan registradas en el `README.md
 
 **Entregables:**
 
-- [ ] Renderizar imagen, antes/después y vídeo con controles nativos y poster.
-- [ ] Descargar vía Blob, con MIME permitido y filename saneado.
-- [ ] Mantener máximo 20 ejecuciones completadas/fallidas en memoria.
-- [ ] Guardar resumen de parámetros y resultado, nunca key ni contenido del upload.
-- [ ] Restaurar un resultado desde historial sin relanzar ni recuperar inputs secretos.
-- [ ] Revocar todos los object URLs al sustituir, eliminar o desmontar.
+- [x] Renderizar imagen, antes/después y vídeo con controles nativos y poster.
+- [x] Descargar vía Blob, con MIME permitido y filename saneado.
+- [x] Mantener máximo 20 ejecuciones completadas/fallidas en memoria.
+- [x] Guardar resumen de parámetros y resultado, nunca key ni contenido del upload.
+- [x] Restaurar un resultado desde historial sin relanzar ni recuperar inputs secretos.
+- [x] Revocar todos los object URLs al sustituir, eliminar o desmontar.
 
 **Commit:** `feat: añade descarga e historial de sesión`
 

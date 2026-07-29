@@ -2,18 +2,39 @@ import { useState } from 'react';
 import { useI18n } from '@/i18n/i18n';
 import { ApiTraceView } from './api-trace-view';
 import type { GenerationState } from './use-generation';
+import type { GenerationResult } from '@ai-playground/core';
+import { downloadResult } from './download-result';
 
-type Props = { state: GenerationState; onRetry: () => void };
+type Props = {
+  state: GenerationState;
+  onRetry: () => void;
+  onDownload?: (result: GenerationResult) => Promise<void>;
+};
 type TabId = 'preview' | 'api';
 
-export function ResultPanel({ state, onRetry }: Props) {
+export function ResultPanel({
+  state,
+  onRetry,
+  onDownload = (result) => downloadResult(result, 'ai-playground-result'),
+}: Props) {
   const { t } = useI18n();
   const [tab, setTab] = useState<TabId>('preview');
+  const [downloadStatus, setDownloadStatus] = useState('');
   const tabs: { id: TabId; label: string }[] = [
     { id: 'preview', label: t('result.tab.preview') },
     { id: 'api', label: t('result.tab.api') },
   ];
   const result = state.status === 'success' ? state.result : null;
+
+  async function handleDownload() {
+    if (!result) return;
+    try {
+      await onDownload(result);
+      setDownloadStatus(t('result.download.ready'));
+    } catch {
+      setDownloadStatus(t('result.download.failed'));
+    }
+  }
 
   return (
     <section className="flex flex-col gap-3">
@@ -72,6 +93,51 @@ export function ResultPanel({ state, onRetry }: Props) {
                 · {result.elapsedMs} ms
               </figcaption>
             </figure>
+          )}
+          {result?.kind === 'image-pair' && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <figure>
+                <img
+                  src={result.before}
+                  alt={t('result.before.alt')}
+                  className="max-w-full rounded-md border border-border"
+                />
+                <figcaption className="text-sm text-muted">{t('result.before')}</figcaption>
+              </figure>
+              <figure>
+                <img
+                  src={result.after}
+                  alt={t('result.after.alt')}
+                  className="max-w-full rounded-md border border-border"
+                />
+                <figcaption className="text-sm text-muted">{t('result.after')}</figcaption>
+              </figure>
+            </div>
+          )}
+          {result?.kind === 'video' && (
+            <video
+              src={result.url}
+              poster={result.poster}
+              controls
+              playsInline
+              preload="metadata"
+              aria-label={t('result.video')}
+              className="max-w-full rounded-md border border-border"
+            />
+          )}
+          {result && (
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="min-h-11 rounded-md border border-border px-3"
+              >
+                {t('result.download')}
+              </button>
+              <p role="status" aria-live="polite" className="text-sm text-muted">
+                {downloadStatus}
+              </p>
+            </div>
           )}
         </div>
       )}

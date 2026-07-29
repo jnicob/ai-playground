@@ -16,10 +16,11 @@ import { GenerationForm } from './ui/generation-form';
 import { createGenerationDraft, generationDraftReducer } from './ui/generation-draft';
 import { ProviderSelector } from './ui/provider-selector';
 import { ResultPanel } from './ui/result-panel';
+import { SessionHistory, type SessionHistoryEntry, useSessionHistory } from './ui/session-history';
 import { ShareDialog } from './ui/share-dialog';
 import { buildSafeUrl, parseUrlState } from './ui/url-state';
 import { useApiKeys } from './ui/use-api-keys';
-import { useGeneration } from './ui/use-generation';
+import { useGeneration, type GenerationState } from './ui/use-generation';
 
 function resultForExample(example: ExampleDefinition | undefined): GenerationResult | null {
   if (!example) return null;
@@ -50,6 +51,7 @@ function Playground({ service }: { service?: GenerationService }) {
   );
   const { keyFor, setKey, clearKey } = useApiKeys();
   const lastRequest = useRef<GenerationRequest | null>(null);
+  const recordedState = useRef<GenerationState | undefined>(undefined);
   const initialExample = exampleById(initialUrlState.exampleId, initialUrlState.patch.service);
   const [exampleId, setExampleId] = useState<string | undefined>(() => initialExample?.id);
   const [exampleResult, setExampleResult] = useState<GenerationResult | null>(() =>
@@ -57,6 +59,8 @@ function Playground({ service }: { service?: GenerationService }) {
   );
   const [shareUrl, setShareUrl] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+  const [restoredHistoryId, setRestoredHistoryId] = useState<string>();
+  const [hideGenerationResult, setHideGenerationResult] = useState(false);
 
   const provider = providerById(draft.provider);
   const apiKey = keyFor(draft.provider);
@@ -72,6 +76,21 @@ function Playground({ service }: { service?: GenerationService }) {
   );
 
   const { state, generate } = useGeneration(activeGenerationService);
+  const {
+    entries: historyEntries,
+    addCompleted,
+    addFailed,
+    remove: removeHistoryEntry,
+  } = useSessionHistory();
+
+  useEffect(() => {
+    if (recordedState.current === state) return;
+    recordedState.current = state;
+    const request = lastRequest.current;
+    if (!request) return;
+    if (state.status === 'success') addCompleted(request, state.result);
+    if (state.status === 'error') addFailed(request);
+  }, [state, addCompleted, addFailed]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -88,6 +107,7 @@ function Playground({ service }: { service?: GenerationService }) {
       const example = exampleById(parsed.exampleId, parsed.patch.service);
       setExampleId(example?.id);
       setExampleResult(resultForExample(example));
+      setHideGenerationResult(!example);
     }
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -103,6 +123,8 @@ function Playground({ service }: { service?: GenerationService }) {
   function handleGenerate(request: GenerationRequest) {
     lastRequest.current = request;
     setExampleResult(null);
+    setRestoredHistoryId(undefined);
+    setHideGenerationResult(false);
     generate(request);
   }
 
@@ -110,11 +132,31 @@ function Playground({ service }: { service?: GenerationService }) {
     dispatch({ type: 'load-example', value: example.patch });
     setExampleId(example.id);
     setExampleResult(resultForExample(example));
+    setRestoredHistoryId(undefined);
+    setHideGenerationResult(false);
   }
 
   function handleSelectService(value: (typeof SERVICE_CATALOG)[number]['id']) {
     setExampleResult(null);
+    setRestoredHistoryId(undefined);
+    setHideGenerationResult(true);
     dispatchDraft({ type: 'select-service', value });
+  }
+
+  function restoreHistory(entry: SessionHistoryEntry & { result: GenerationResult }) {
+    setExampleId(undefined);
+    setExampleResult(entry.result);
+    setRestoredHistoryId(entry.id);
+    setHideGenerationResult(false);
+  }
+
+  function removeHistory(id: string) {
+    if (restoredHistoryId === id) {
+      setExampleResult(null);
+      setRestoredHistoryId(undefined);
+      setHideGenerationResult(true);
+    }
+    removeHistoryEntry(id);
   }
 
   function openShareDialog() {
@@ -193,10 +235,23 @@ function Playground({ service }: { service?: GenerationService }) {
           />
           <ExampleGallery service={draft.service} onUse={handleUseExample} />
         </div>
-        <ResultPanel
-          state={exampleResult ? { status: 'success', result: exampleResult } : state}
-          onRetry={() => lastRequest.current && handleGenerate(lastRequest.current)}
-        />
+        <div className="flex flex-col gap-6">
+          <ResultPanel
+            state={
+              exampleResult
+                ? { status: 'success', result: exampleResult }
+                : hideGenerationResult
+                  ? { status: 'idle' }
+                  : state
+            }
+            onRetry={() => lastRequest.current && handleGenerate(lastRequest.current)}
+          />
+          <SessionHistory
+            entries={historyEntries}
+            onRestore={restoreHistory}
+            onRemove={removeHistory}
+          />
+        </div>
       </main>
       <ShareDialog open={shareOpen} url={shareUrl} onClose={() => setShareOpen(false)} />
     </div>
