@@ -2,8 +2,9 @@
 
 ## Ahora
 
-Fase C en curso en `feat/phase-c`. C1–C4 completadas: contratos, registry, snippets y
-edición de imagen Google síncrona con upload validado.
+Implementación C1–C12 completada en `feat/phase-c-continuation`, apilada sobre `feat/phase-c`
+mientras la PR #1 siga abierta. El cierre formal de C queda pendiente solo de los smoke live
+de pago con key personal y autorización explícita.
 
 ## Hecho
 
@@ -15,7 +16,7 @@ edición de imagen Google síncrona con upload validado.
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación fresca: lint, format, typecheck, 208 tests y build completos en verde.
+- Verificación C12: lint, format, typecheck, 279 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
@@ -24,10 +25,36 @@ edición de imagen Google síncrona con upload validado.
   ejecutable con polling/descarga, selector accesible y copy feedback.
 - C4: conector Google por servicio, PNG/JPEG/WebP base64 hasta 10 MiB con firma mágica,
   output externo validado y respuesta `200 COMPLETED` sin serializar el upload en task ID.
+- C5: Veo inicia `predictLongRunning`, devuelve `task_id` v2 y consulta la operación sin
+  reiniciarla. El vídeo final se sirve mediante descarga autenticada propia con token de
+  `fileId` validado, allowlist HTTPS estricta, redirects bloqueados, MP4/tamaño controlados y
+  `private, no-store`.
+- C6: el adaptador `platform` acepta POST 200/202, hace polling desde 10 s con backoff 429
+  hasta 30 s y timeout total de 10 min. Una operación aceptada nunca degrada a mock; el vídeo
+  se descarga con key a Blob y expone `dispose()` idempotente, con traza redactada.
+- C7: un reducer controlado gobierna servicio, proveedor, modelo y parámetros sin perder
+  campos compatibles. La edición valida tipo/firma/10 MiB, permite preview/reemplazo/borrado;
+  vídeo ofrece aspecto/duración/720p, estimación, confirmación de pago y aviso de cancelación.
+- C8: el catálogo tipado cubre imagen, edición y vídeo para las familias iniciales con assets
+  propios locales. “Usar ejemplo” hidrata draft y resultado sin invocar adaptadores; previews
+  declaran alt/dimensiones y vídeo usa póster sin precargar el binario.
+- C9: la URL serializa solo configuración permitida, validada con Zod y registry; excluye
+  keys, uploads, resultados y operaciones. Hidrata antes del render, sincroniza popstate con
+  replaceState/debounce y ofrece diálogo nativo accesible con copy feedback.
+- C10: los viewers cubren imagen, antes/después y vídeo nativo. La descarga valida MIME,
+  tamaño y filename mediante Blob temporal. El historial en memoria limita a 20, elimina
+  uploads/trazas/URLs sensibles y libera object URLs al expulsar, borrar o desmontar.
+- C11: integración mock cubre ejemplo → edición → descarga → historial → vídeo; URL/share,
+  snippets y errores están cubiertos. Tabs usan flechas/tabpanel, hay foco visible y reduced
+  motion. Se corrigió el 429 de polling para conservar el backoff del adapter.
+- C12: README, spec, roadmap, privacidad y OpenAPI reflejan la ejecución dual, Veo y sus
+  costes/límites. Smoke de producción local: `/health` 200, OpenAPI válida, preview y asset
+  de vídeo mock servidos correctamente.
 
 ## Siguiente acción
 
-Ejecutar C5: Veo long-running, `task_id` v2, polling y descarga autenticada segura.
+Obtener autorización para los smoke live (edición Lite USD 0.0336 + Veo Lite 4 s USD 0.20);
+si pasan, marcar C hecha y abrir la Fase D.
 
 ## Pendientes del usuario
 

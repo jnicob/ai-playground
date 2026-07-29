@@ -91,3 +91,28 @@ adapter }`. Añadir proveedor = definición + adaptador (skill `adding-a-provide
 - **Timeout del adaptador**: el endpoint de generación es síncrono y puede tardar más de
   20 s. El adaptador `platform` espera hasta 120 s antes de degradar a mock para no
   ocultar una generación real válida.
+
+## 6. Enmiendas verificadas (fase C, 2026-07-29)
+
+- **Ejecución dual**: `edit-image` puede responder `200 COMPLETED`; imagen y Veo pueden
+  responder `202 IN_PROGRESS`. Veo usa una referencia de operación validada en `task_id`
+  v2, polling desde 10 s con backoff hasta 30 s y timeout total de 10 min. Una operación
+  de pago aceptada nunca degrada a mock ni se reinicia.
+- **Edición con upload efímero**: la restricción «sin upload de usuario en v1» queda
+  reemplazada. La UI acepta PNG/JPEG/WebP hasta 10 MiB, valida MIME y firma, mantiene el
+  base64 solo en memoria y lo excluye de task IDs, URL, snippets e historial.
+- **Veo y coste real**: Google Veo admite 16:9/9:16, 4/6/8 s y 720p. El catálogo declara
+  Lite USD 0.05/s, Fast USD 0.10/s y Standard USD 0.40/s, con pricing verificado el
+  2026-07-29. La UI recalcula la estimación y exige confirmación explícita.
+- **Descarga de vídeo**: la API nunca expone la URI del proveedor. Devuelve un endpoint
+  propio autenticado, con allowlist HTTPS, token acotado, MP4 máximo 100 MiB, redirects
+  bloqueados y `Cache-Control: private, no-store`. El cliente crea y revoca el Blob URL.
+- **UI implementada sin dependencia privada**: viewers nativos cubren imagen,
+  antes/después y vídeo; no se usa `@nicobehm/media-kit`. Los ejemplos reutilizan assets
+  propios locales y no invocan adapters.
+- **URL e historial seguros**: share serializa exclusivamente
+  `service/provider/model/prompt/aspect/seed/duration/resolution/example`, validado con
+  Zod y registry. Keys, uploads, resultados, blobs y operaciones quedan fuera. El
+  historial es solo memoria, máximo 20 entradas, sin trazas/task IDs ni URLs sensibles.
+- **Accesibilidad**: tabs con semántica/teclado, diálogo nativo con foco/Escape, feedback
+  `aria-live`, foco visible, contraste AA y `prefers-reduced-motion`.

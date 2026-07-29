@@ -36,3 +36,10 @@ describe.each(['dark', 'light'] as const)('tokens %s', (theme) => {
     expect(ratio(t.danger!, t.bg!)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+describe('preferencias de interacción', () => {
+  it('incluye foco visible y respeta reduced motion', () => {
+    expect(css).toMatch(/:focus-visible/);
+    expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
+  });
+});

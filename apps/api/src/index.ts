@@ -3,14 +3,15 @@ import { cors } from 'hono/cors';
 import {
   API_KEY_HEADER,
   PlatformError,
-  decodeTaskId,
+  decodeTaskReference,
   encodeTaskId,
+  encodeOperationTaskId,
   generationRequestSchema,
   providerById,
   type ApiErrorCode,
   type GenerationRequest,
 } from '@ai-playground/core';
-import { connectorFor } from './connectors';
+import { connectorFor, videoConnectorFor } from './connectors';
 import { openApiDocument } from './openapi';
 
 export const app = new Hono();
@@ -20,13 +21,23 @@ app.use('/v1/*', cors({ origin: '*', allowHeaders: ['content-type', API_KEY_HEAD
 app.get('/health', (c) => c.json({ status: 'ok', service: 'ai-playground-api' }));
 app.get('/openapi.json', (c) => c.json(openApiDocument));
 
-const STATUS_BY_CODE: Partial<Record<ApiErrorCode, 400 | 401 | 422 | 428>> = {
+const STATUS_BY_CODE: Partial<Record<ApiErrorCode, 400 | 401 | 422 | 428 | 429 | 502>> = {
   invalid_request: 400,
   unsupported_provider: 400,
   invalid_api_key: 401,
   content_blocked: 422,
   missing_api_key: 428,
+  rate_limited: 429,
+  provider_error: 502,
 };
+const DIRECT_TASK_ERROR_CODES: readonly ApiErrorCode[] = [
+  'invalid_request',
+  'missing_api_key',
+  'invalid_api_key',
+  'content_blocked',
+  'rate_limited',
+  'unsupported_provider',
+];
 
 function errorResponse(error: PlatformError) {
   return {
@@ -73,7 +84,11 @@ app.post('/v1/services/:service', async (c) => {
     });
     if (!parsed.success) throw new PlatformError('invalid_request', 'Invalid generation request');
     request = parsed.data;
-    connectorFor(request.provider, request.service);
+    if (request.service === 'generate-video') {
+      videoConnectorFor(request.provider);
+    } else {
+      connectorFor(request.provider, request.service);
+    }
     assertKeyIfRequired(request, c.req.header(API_KEY_HEADER));
   } catch (error) {
     const platform =
@@ -91,6 +106,7 @@ app.post('/v1/services/:service', async (c) => {
       const output = await connectorFor(request.provider, request.service)(request, {
         fetchImpl: globalThis.fetch.bind(globalThis),
         ...(apiKey ? { apiKey } : {}),
+        signal: c.req.raw.signal,
       });
       return c.json(
         {
@@ -113,6 +129,35 @@ app.post('/v1/services/:service', async (c) => {
     }
   }
 
+  if (request.service === 'generate-video') {
+    try {
+      const apiKey = c.req.header(API_KEY_HEADER);
+      const { operationName } = await videoConnectorFor(request.provider).start(request, {
+        fetchImpl: globalThis.fetch.bind(globalThis),
+        ...(apiKey ? { apiKey } : {}),
+        signal: c.req.raw.signal,
+      });
+      return c.json(
+        {
+          task_id: encodeOperationTaskId({
+            service: request.service,
+            provider: request.provider,
+            operationName,
+          }),
+          status: 'IN_PROGRESS',
+        },
+        202,
+      );
+    } catch (error) {
+      const platform =
+        error instanceof PlatformError
+          ? error
+          : new PlatformError('provider_error', 'Video generation failed');
+      const { body, status } = errorResponse(platform);
+      return c.json(body, status);
+    }
+  }
+
   if (request.service !== 'generate-image') {
     const { body, status } = errorResponse(
       new PlatformError('unsupported_provider', 'Service is not available yet'),
@@ -126,10 +171,14 @@ app.get('/v1/tasks/:taskId', async (c) => {
   const taskId = c.req.param('taskId');
   const apiKey = c.req.header(API_KEY_HEADER);
 
-  let request: GenerationRequest;
+  let reference: ReturnType<typeof decodeTaskReference>;
   try {
-    request = decodeTaskId(taskId);
-    assertKeyIfRequired(request, apiKey);
+    reference = decodeTaskReference(taskId);
+    if (reference.kind === 'request') {
+      assertKeyIfRequired(reference.request, apiKey);
+    } else if (!apiKey) {
+      throw new PlatformError('missing_api_key', 'Provider "google" requires an API key');
+    }
   } catch (error) {
     const platform =
       error instanceof PlatformError
@@ -141,10 +190,29 @@ app.get('/v1/tasks/:taskId', async (c) => {
 
   const started = Date.now();
   try {
+    if (reference.kind === 'operation') {
+      const result = await videoConnectorFor(reference.provider).poll(reference.operationName, {
+        fetchImpl: globalThis.fetch.bind(globalThis),
+        ...(apiKey ? { apiKey } : {}),
+        signal: c.req.raw.signal,
+      });
+      if (result.status === 'IN_PROGRESS') {
+        return c.json({ task_id: taskId, status: 'IN_PROGRESS' });
+      }
+      return c.json({
+        task_id: taskId,
+        status: 'COMPLETED',
+        provider: reference.provider,
+        elapsed_ms: Date.now() - started,
+        output: result.output,
+      });
+    }
+    const request = reference.request;
     const connector = connectorFor(request.provider, request.service);
     const output = await connector(request, {
       fetchImpl: globalThis.fetch.bind(globalThis),
       ...(apiKey ? { apiKey } : {}),
+      signal: c.req.raw.signal,
     });
     return c.json({
       task_id: taskId,
@@ -154,13 +222,49 @@ app.get('/v1/tasks/:taskId', async (c) => {
       output,
     });
   } catch (error) {
-    if (error instanceof PlatformError && STATUS_BY_CODE[error.code]) {
+    if (error instanceof PlatformError && DIRECT_TASK_ERROR_CODES.includes(error.code)) {
       const { body, status } = errorResponse(error);
       return c.json(body, status);
     }
     const code: ApiErrorCode = error instanceof PlatformError ? error.code : 'provider_error';
     const message = error instanceof Error ? error.message : 'Generation failed';
     return c.json({ task_id: taskId, status: 'FAILED', error: { code, message } });
+  }
+});
+
+app.get('/v1/downloads/:token', async (c) => {
+  const apiKey = c.req.header(API_KEY_HEADER);
+  if (!apiKey) {
+    const { body, status } = errorResponse(
+      new PlatformError('missing_api_key', 'Provider "google" requires an API key'),
+    );
+    return c.json(body, status);
+  }
+
+  try {
+    const download = await videoConnectorFor('google').download(c.req.param('token'), {
+      fetchImpl: globalThis.fetch.bind(globalThis),
+      apiKey,
+      signal: c.req.raw.signal,
+    });
+    const responseBytes = Uint8Array.from(download.bytes);
+    return new Response(responseBytes.buffer, {
+      status: 200,
+      headers: {
+        'content-type': download.contentType,
+        'content-length': String(download.bytes.byteLength),
+        'content-disposition': 'attachment; filename="veo-video.mp4"',
+        'cache-control': 'private, no-store',
+        'x-content-type-options': 'nosniff',
+      },
+    });
+  } catch (error) {
+    const platform =
+      error instanceof PlatformError
+        ? error
+        : new PlatformError('provider_error', 'Video download failed');
+    const { body, status } = errorResponse(platform);
+    return c.json(body, status);
   }
 });
 

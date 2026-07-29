@@ -73,7 +73,7 @@ describe('createGenerationService con proveedores live', () => {
       });
       const generation = service.generate(request);
 
-      await vi.advanceTimersByTimeAsync(30_000);
+      await vi.advanceTimersByTimeAsync(40_000);
 
       await expect(generation).resolves.toMatchObject({
         url: 'https://example.test/live.jpg',
@@ -82,6 +82,43 @@ describe('createGenerationService con proveedores live', () => {
       });
     } finally {
       vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it('no degrada a mock después de aceptar una operación que puede generar coste', async () => {
+    vi.useFakeTimers();
+    const videoRequest: GenerationRequest = {
+      service: 'generate-video',
+      provider: 'google',
+      prompt: 'A paper boat',
+      model: 'veo-3.1-lite-generate-preview',
+      aspectRatio: 'widescreen_16_9',
+      seed: 17,
+      durationSeconds: 4,
+      resolution: '720p',
+    };
+    const fetchImpl = vi.fn(async (url: string | URL | Request) =>
+      String(url).includes('/v1/services/')
+        ? json({ task_id: 'v2.operation', status: 'IN_PROGRESS' }, 202)
+        : json({ error: { code: 'provider_error', message: 'upstream failed' } }, 502),
+    );
+
+    try {
+      const service = createGenerationService('google', {
+        apiBaseUrl: 'https://api.test',
+        fetchImpl,
+        pollIntervalMs: 10,
+      });
+      const generation = service.generate(videoRequest);
+      const rejection = expect(generation).rejects.toMatchObject({
+        code: 'provider_error',
+        operationCommitted: true,
+      });
+      await vi.advanceTimersByTimeAsync(10);
+
+      await rejection;
+    } finally {
       vi.useRealTimers();
     }
   });

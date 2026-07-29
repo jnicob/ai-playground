@@ -1,5 +1,12 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-import { API_ERROR_CODES, API_KEY_HEADER, decodeTaskId, encodeTaskId } from '@ai-playground/core';
+import {
+  API_ERROR_CODES,
+  API_KEY_HEADER,
+  decodeTaskId,
+  decodeTaskReference,
+  encodeTaskId,
+  encodeOperationTaskId,
+} from '@ai-playground/core';
 import { app } from './index';
 
 const request = {
@@ -29,6 +36,13 @@ const post = (payload: unknown, headers: Record<string, string> = {}) =>
 
 const postEdit = (payload: unknown, headers: Record<string, string> = {}) =>
   app.request('/v1/services/edit-image', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...headers },
+    body: JSON.stringify(payload),
+  });
+
+const postVideo = (payload: unknown, headers: Record<string, string> = {}) =>
+  app.request('/v1/services/generate-video', {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },
     body: JSON.stringify(payload),
@@ -208,6 +222,34 @@ describe('GET /v1/tasks/:taskId', () => {
     expect(res.status).toBe(428);
   });
 
+  it.each([
+    [403, 401, 'invalid_api_key'],
+    [429, 429, 'rate_limited'],
+  ])('mapea Google %i a HTTP %i con código %s', async (providerStatus, status, code) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: { message: 'provider rejected request' } }), {
+            status: providerStatus,
+            headers: { 'content-type': 'application/json' },
+          }),
+      ),
+    );
+    const googleId = encodeTaskId({
+      ...request,
+      provider: 'google',
+      model: 'gemini-2.5-flash-image',
+    });
+
+    const res = await app.request(`/v1/tasks/${googleId}`, {
+      headers: { [API_KEY_HEADER]: 'personal-key-placeholder' },
+    });
+
+    expect(res.status).toBe(status);
+    expect(await res.json()).toMatchObject({ error: { code } });
+  });
+
   it('devuelve 422 content_blocked cuando google bloquea el contenido por seguridad (200 sin imagen)', async () => {
     vi.stubGlobal(
       'fetch',
@@ -293,6 +335,133 @@ describe('POST /v1/services/edit-image', () => {
   });
 });
 
+describe('Veo long-running y descarga', () => {
+  const operationName = 'models/veo-3.1-lite-generate-preview/operations/abc-123';
+  const videoBody = {
+    provider: 'google',
+    prompt: 'A paper boat crossing a moonlit pond',
+    model: 'veo-3.1-lite-generate-preview',
+    aspect_ratio: 'widescreen_16_9',
+    seed: 17,
+    duration_seconds: 4,
+    resolution: '720p',
+  };
+
+  it('inicia una operación una sola vez y devuelve 202 con task_id v2', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ name: operationName, done: false }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await postVideo(videoBody, { [API_KEY_HEADER]: 'personal-key' });
+    const payload = (await res.json()) as { task_id: string; status: string };
+
+    expect(res.status).toBe(202);
+    expect(payload.status).toBe('IN_PROGRESS');
+    expect(decodeTaskReference(payload.task_id)).toMatchObject({
+      version: 'v2',
+      kind: 'operation',
+      service: 'generate-video',
+      provider: 'google',
+      operationName,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('polling v2 consulta la operación sin volver a ejecutar POST', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ name: operationName, done: false }));
+    vi.stubGlobal('fetch', fetchMock);
+    const taskId = encodeOperationTaskId({
+      service: 'generate-video',
+      provider: 'google',
+      operationName,
+    });
+
+    const res = await app.request(`/v1/tasks/${taskId}`, {
+      headers: { [API_KEY_HEADER]: 'personal-key' },
+    });
+
+    expect(await res.json()).toEqual({ task_id: taskId, status: 'IN_PROGRESS' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      `https://generativelanguage.googleapis.com/v1beta/${operationName}`,
+      expect.objectContaining({ method: 'GET' }),
+    );
+  });
+
+  it('expone el resultado final solo mediante endpoint propio', async () => {
+    const uri =
+      'https://generativelanguage.googleapis.com/v1beta/files/video-123:download?alt=media';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse({
+          done: true,
+          response: {
+            generateVideoResponse: { generatedSamples: [{ video: { uri } }] },
+          },
+        }),
+      ),
+    );
+    const taskId = encodeOperationTaskId({
+      service: 'generate-video',
+      provider: 'google',
+      operationName,
+    });
+
+    const res = await app.request(`/v1/tasks/${taskId}`, {
+      headers: { [API_KEY_HEADER]: 'personal-key' },
+    });
+    const raw = await res.text();
+    const payload = JSON.parse(raw) as {
+      output: { download_url: string };
+    };
+
+    expect(payload.output.download_url).toMatch(/^\/v1\/downloads\//);
+    expect(raw).not.toContain(uri);
+  });
+
+  it('transmite MP4 autenticado sin cache compartida', async () => {
+    const uri =
+      'https://generativelanguage.googleapis.com/v1beta/files/video-123:download?alt=media';
+    const { encodeGoogleVideoDownloadToken } = await import('./connectors/google-video');
+    const token = encodeGoogleVideoDownloadToken(uri);
+    const bytes = new Uint8Array([0, 0, 0, 20, 0x66, 0x74, 0x79, 0x70]);
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(bytes, {
+          headers: { 'content-type': 'video/mp4', 'content-length': String(bytes.byteLength) },
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await app.request(`/v1/downloads/${token}`, {
+      headers: { [API_KEY_HEADER]: 'personal-key' },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('video/mp4');
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(bytes);
+    expect(fetchMock).toHaveBeenCalledWith(
+      uri,
+      expect.objectContaining({ headers: { 'x-goog-api-key': 'personal-key' } }),
+    );
+  });
+
+  it('rechaza descarga sin key o con token manipulado antes de hacer fetch', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect((await app.request('/v1/downloads/not-a-token')).status).toBe(428);
+    expect(
+      (
+        await app.request('/v1/downloads/not-a-token', {
+          headers: { [API_KEY_HEADER]: 'k' },
+        })
+      ).status,
+    ).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
 describe('CORS y OpenAPI', () => {
   it('responde al preflight permitiendo el header de key', async () => {
     const res = await app.request('/v1/services/generate-image', {
@@ -315,17 +484,21 @@ describe('CORS y OpenAPI', () => {
     const spec = (await res.json()) as { openapi: string; paths: Record<string, unknown> };
     expect(spec.openapi.startsWith('3.')).toBe(true);
     expect(Object.keys(spec.paths)).toEqual(
-      expect.arrayContaining(['/v1/services/{service}', '/v1/tasks/{task_id}']),
+      expect.arrayContaining([
+        '/v1/services/{service}',
+        '/v1/tasks/{task_id}',
+        '/v1/downloads/{token}',
+      ]),
     );
   });
 
-  it('documenta 401 (key inválida) y 422 (contenido bloqueado) en GET /v1/tasks/{task_id}', async () => {
+  it('documenta 401, 422 y 429 en GET /v1/tasks/{task_id}', async () => {
     const res = await app.request('/openapi.json');
     type OpenApiOperation = { responses: Record<string, unknown> };
     type OpenApiDoc = { paths: { '/v1/tasks/{task_id}': { get: OpenApiOperation } } };
     const spec = (await res.json()) as OpenApiDoc;
     const responseCodes = Object.keys(spec.paths['/v1/tasks/{task_id}'].get.responses);
-    expect(responseCodes).toEqual(expect.arrayContaining(['401', '422']));
+    expect(responseCodes).toEqual(expect.arrayContaining(['401', '422', '429']));
   });
 
   it('no lista mock como provider expuesto y el enum de error codes coincide con API_ERROR_CODES', async () => {
@@ -394,8 +567,18 @@ describe('CORS y OpenAPI', () => {
       operation.parameters.find((parameter) => parameter.name === 'service')?.schema.enum,
     ).toContain('edit-image');
     expect(
+      operation.parameters.find((parameter) => parameter.name === 'service')?.schema.enum,
+    ).toContain('generate-video');
+    expect(
       operation.requestBody.content['application/json'].schema.properties.source_image?.properties,
     ).toHaveProperty('mime_type');
     expect(operation.responses).toHaveProperty('200');
   });
 });
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}

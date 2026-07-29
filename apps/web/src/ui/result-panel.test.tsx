@@ -81,4 +81,74 @@ describe('ResultPanel', () => {
     expect(img).not.toHaveAttribute('width');
     expect(img).not.toHaveAttribute('height');
   });
+
+  it('renderiza comparación antes/después', () => {
+    wrap({
+      status: 'success',
+      result: {
+        kind: 'image-pair',
+        before: '/mocks/square-1.webp',
+        after: '/mocks/square-2.webp',
+        provider: 'mock',
+        degraded: false,
+        elapsedMs: 2,
+        apiTrace: [],
+      },
+    });
+
+    expect(screen.getByRole('img', { name: 'Original image' })).toHaveAttribute(
+      'src',
+      '/mocks/square-1.webp',
+    );
+    expect(screen.getByRole('img', { name: 'Edited image' })).toHaveAttribute(
+      'src',
+      '/mocks/square-2.webp',
+    );
+  });
+
+  it('renderiza vídeo con controles y poster', () => {
+    const { container } = wrap({
+      status: 'success',
+      result: {
+        kind: 'video',
+        url: '/mocks/video-gradient.webm',
+        poster: '/mocks/wide-1.webp',
+        dispose: vi.fn(),
+        provider: 'mock',
+        degraded: false,
+        elapsedMs: 2,
+        apiTrace: [],
+      },
+    });
+
+    const video = container.querySelector('video');
+    expect(video).toHaveAttribute('controls');
+    expect(video).toHaveAttribute('poster', '/mocks/wide-1.webp');
+    expect(video).toHaveAttribute('preload', 'metadata');
+  });
+
+  it('descarga el resultado y anuncia éxito', async () => {
+    const onDownload = vi.fn().mockResolvedValue(undefined);
+    render(
+      <I18nProvider>
+        <ResultPanel state={success} onRetry={vi.fn()} onDownload={onDownload} />
+      </I18nProvider>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Download' }));
+
+    expect(onDownload).toHaveBeenCalledWith(success.result);
+    expect(screen.getByRole('status')).toHaveTextContent('Download ready');
+  });
+
+  it('permite recorrer las tabs con flechas y expone el tabpanel', async () => {
+    wrap(success);
+    const preview = screen.getByRole('tab', { name: 'Preview' });
+    preview.focus();
+
+    await userEvent.keyboard('{ArrowRight}');
+
+    expect(screen.getByRole('tab', { name: 'API' })).toHaveFocus();
+    expect(screen.getByRole('tabpanel', { name: 'API' })).toBeInTheDocument();
+  });
 });

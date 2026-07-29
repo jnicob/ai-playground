@@ -59,7 +59,13 @@ export type GenerationResult = GenerationMeta &
   (
     | { kind: 'image'; url: string; width?: number; height?: number }
     | { kind: 'image-pair'; before: string; after: string }
-    | { kind: 'video'; url: string; poster: string }
+    | {
+        kind: 'video';
+        url: string;
+        poster: string;
+        /** Libera el object URL local. Es idempotente y el consumidor conserva su ownership. */
+        dispose: () => void;
+      }
   );
 
 export type GenerationService = {

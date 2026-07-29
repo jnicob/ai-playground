@@ -24,7 +24,20 @@ const imagePairOutput = {
   },
 } as const;
 
-const taskOutput = { oneOf: [imageOutput, imagePairOutput] } as const;
+const videoOutput = {
+  type: 'object',
+  required: ['kind', 'download_url'],
+  properties: {
+    kind: { type: 'string', enum: ['video'] },
+    download_url: {
+      type: 'string',
+      description: 'Authenticated ai-playground download endpoint; never the provider URI.',
+    },
+    poster_url: { type: 'string' },
+  },
+} as const;
+
+const taskOutput = { oneOf: [imageOutput, imagePairOutput, videoOutput] } as const;
 
 const errorBody = {
   type: 'object',
@@ -72,7 +85,10 @@ export const openApiDocument = {
             name: 'service',
             in: 'path',
             required: true,
-            schema: { type: 'string', enum: ['generate-image', 'edit-image'] },
+            schema: {
+              type: 'string',
+              enum: ['generate-image', 'edit-image', 'generate-video'],
+            },
           },
           keyHeader,
         ],
@@ -103,6 +119,16 @@ export const openApiDocument = {
                       },
                       data: { type: 'string', contentEncoding: 'base64' },
                     },
+                  },
+                  duration_seconds: {
+                    description: 'Required for generate-video.',
+                    type: 'integer',
+                    enum: [4, 6, 8],
+                  },
+                  resolution: {
+                    description: 'Required for generate-video.',
+                    type: 'string',
+                    enum: ['720p'],
                   },
                 },
               },
@@ -211,6 +237,59 @@ export const openApiDocument = {
           },
           '428': {
             description: 'Provider API key required',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '429': {
+            description: 'Provider rate limit reached; clients should retry with backoff',
+            content: { 'application/json': { schema: errorBody } },
+          },
+        },
+      },
+    },
+    '/v1/downloads/{token}': {
+      get: {
+        summary: 'Download a completed Veo video through an authenticated safe proxy',
+        parameters: [
+          {
+            name: 'token',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', pattern: '^[A-Za-z0-9_-]{1,128}$' },
+          },
+          { ...keyHeader, required: true },
+        ],
+        responses: {
+          '200': {
+            description: 'MP4 video bytes',
+            headers: {
+              'Cache-Control': {
+                schema: { type: 'string', enum: ['private, no-store'] },
+              },
+            },
+            content: {
+              'video/mp4': {
+                schema: { type: 'string', contentEncoding: 'binary' },
+              },
+            },
+          },
+          '400': {
+            description: 'Malformed or unsupported download token',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '428': {
+            description: 'Provider API key required',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '401': {
+            description: 'Invalid provider API key',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '429': {
+            description: 'Provider rate limit reached',
+            content: { 'application/json': { schema: errorBody } },
+          },
+          '502': {
+            description: 'Provider download failed or returned unsafe content',
             content: { 'application/json': { schema: errorBody } },
           },
         },

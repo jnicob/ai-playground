@@ -4,7 +4,9 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c`; C1–C4 completadas.
+**Status:** Implementación C1–C12 completada en `feat/phase-c-continuation`; el cierre formal
+de C sigue pendiente de los smoke live de pago y su autorización. La rama está apilada sobre
+`feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -191,13 +193,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Iniciar `predictLongRunning`, validar la operación y devolver `202` + `task_id` v2.
-- [ ] Consultar operaciones v2 sin reiniciar trabajos en cada GET.
-- [ ] Mapear progreso, error y resultado; redacción de secretos incluida.
-- [ ] Exponer descarga mediante endpoint propio con token opaco validado.
-- [ ] Permitir únicamente HTTPS y hosts/path de Google conocidos; bloquear redirects fuera de
+- [x] Iniciar `predictLongRunning`, validar la operación y devolver `202` + `task_id` v2.
+- [x] Consultar operaciones v2 sin reiniciar trabajos en cada GET.
+- [x] Mapear progreso, error y resultado; redacción de secretos incluida.
+- [x] Exponer descarga mediante endpoint propio con token opaco validado.
+- [x] Permitir únicamente HTTPS y hosts/path de Google conocidos; bloquear redirects fuera de
       allowlist, IPs, hosts alternativos y paths manipulados.
-- [ ] Transmitir bytes con tipo/tamaño controlados y sin cache compartida.
+- [x] Transmitir bytes con tipo/tamaño controlados y sin cache compartida.
 
 **Commit:** `feat: integra generación de vídeo con veo`
 
@@ -212,13 +214,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Aceptar POST síncrono `200` y asíncrono `202`.
-- [ ] Polling de vídeo abortable: intervalo inicial recomendado por API, backoff ante 429,
+- [x] Aceptar POST síncrono `200` y asíncrono `202`.
+- [x] Polling de vídeo abortable: intervalo inicial recomendado por API, backoff ante 429,
       tope 30 s y timeout total 10 min.
-- [ ] No degradar a mock errores fatales ni una operación que ya pudo generar coste.
-- [ ] Descargar vídeo con header de key a Blob y entregar lifecycle explícito al consumidor.
-- [ ] Registrar traza real sin headers sensibles, base64 ni URLs firmadas.
-- [ ] Probar aborto durante POST, polling y descarga.
+- [x] No degradar a mock errores fatales ni una operación que ya pudo generar coste.
+- [x] Descargar vídeo con header de key a Blob y entregar lifecycle explícito al consumidor.
+- [x] Registrar traza real sin headers sensibles, base64 ni URLs firmadas.
+- [x] Probar aborto durante POST, polling y descarga.
 
 **Commit:** `feat: soporta ejecución síncrona y operaciones largas`
 
@@ -236,13 +238,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Mover el formulario a un reducer controlado con defaults, URL y ejemplos como acciones
+- [x] Mover el formulario a un reducer controlado con defaults, URL y ejemplos como acciones
       explícitas.
-- [ ] Conservar prompt/campos compatibles al cambiar modelo; resetear solo estados inválidos.
-- [ ] Añadir upload con preview, sustitución, borrado, validación y mensajes accesibles.
-- [ ] Añadir duración/resolución/aspecto de vídeo y coste estimado recalculado.
-- [ ] Bloquear Google sin key y pedir confirmación informada antes de una operación de pago.
-- [ ] Avisar que abortar polling no garantiza cancelar ni reembolsar el trabajo del proveedor.
+- [x] Conservar prompt/campos compatibles al cambiar modelo; resetear solo estados inválidos.
+- [x] Añadir upload con preview, sustitución, borrado, validación y mensajes accesibles.
+- [x] Añadir duración/resolución/aspecto de vídeo y coste estimado recalculado.
+- [x] Bloquear Google sin key y pedir confirmación informada antes de una operación de pago.
+- [x] Avisar que abortar polling no garantiza cancelar ni reembolsar el trabajo del proveedor.
 
 **Commit:** `feat: añade formulario de edición y vídeo`
 
@@ -259,11 +261,14 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Definir ejemplos tipados con id estable, modelo, patch de formulario y resultado local.
-- [ ] Crear al menos un ejemplo propio por servicio y por familia inicial de modelo.
-- [ ] “Usar ejemplo” hidrata draft y resultado sin invocar adaptador.
-- [ ] Añadir alt text, dimensiones/aspect ratio y póster de vídeo para evitar layout shift.
-- [ ] Optimizar assets y registrar licencia/procedencia propia en el documento.
+- [x] Definir ejemplos tipados con id estable, modelo, patch de formulario y resultado local.
+- [x] Crear al menos un ejemplo propio por servicio y por familia inicial de modelo.
+- [x] “Usar ejemplo” hidrata draft y resultado sin invocar adaptador.
+- [x] Añadir alt text, dimensiones/aspect ratio y póster de vídeo para evitar layout shift.
+- [x] Optimizar assets y registrar licencia/procedencia propia en el documento.
+
+Los ejemplos reutilizan los WebP/WebM propios y optimizados de `apps/web/public/mocks/` para no
+duplicar binarios. Su procedencia y licencia quedan registradas en el `README.md` de ese directorio.
 
 **Commit:** `feat: incorpora ejemplos precargados sin coste`
 
@@ -280,12 +285,12 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Serializar solo service/provider/model/prompt/aspect/seed/duration/resolution/example.
-- [ ] Parsear con Zod, límites de longitud y enums del registry; ignorar campos desconocidos.
-- [ ] Excluir key, upload, resultado, historial, blobs y task IDs de operaciones de pago.
-- [ ] Hidratar antes del primer render útil y manejar `popstate`.
-- [ ] Actualizar con `replaceState` y debounce; evitar bucles e historial del navegador ruidoso.
-- [ ] Diálogo nativo con foco, Escape, copy feedback y explicación de lo omitido.
+- [x] Serializar solo service/provider/model/prompt/aspect/seed/duration/resolution/example.
+- [x] Parsear con Zod, límites de longitud y enums del registry; ignorar campos desconocidos.
+- [x] Excluir key, upload, resultado, historial, blobs y task IDs de operaciones de pago.
+- [x] Hidratar antes del primer render útil y manejar `popstate`.
+- [x] Actualizar con `replaceState` y debounce; evitar bucles e historial del navegador ruidoso.
+- [x] Diálogo nativo con foco, Escape, copy feedback y explicación de lo omitido.
 
 **Commit:** `feat: permite compartir configuración por url`
 
@@ -304,12 +309,12 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Renderizar imagen, antes/después y vídeo con controles nativos y poster.
-- [ ] Descargar vía Blob, con MIME permitido y filename saneado.
-- [ ] Mantener máximo 20 ejecuciones completadas/fallidas en memoria.
-- [ ] Guardar resumen de parámetros y resultado, nunca key ni contenido del upload.
-- [ ] Restaurar un resultado desde historial sin relanzar ni recuperar inputs secretos.
-- [ ] Revocar todos los object URLs al sustituir, eliminar o desmontar.
+- [x] Renderizar imagen, antes/después y vídeo con controles nativos y poster.
+- [x] Descargar vía Blob, con MIME permitido y filename saneado.
+- [x] Mantener máximo 20 ejecuciones completadas/fallidas en memoria.
+- [x] Guardar resumen de parámetros y resultado, nunca key ni contenido del upload.
+- [x] Restaurar un resultado desde historial sin relanzar ni recuperar inputs secretos.
+- [x] Revocar todos los object URLs al sustituir, eliminar o desmontar.
 
 **Commit:** `feat: añade descarga e historial de sesión`
 
@@ -325,14 +330,18 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Flujo mock completo de imagen, edición y vídeo.
-- [ ] Ejemplo → edición → resultado → descarga → historial.
-- [ ] URL → hidratación → cambio → back/forward → copy.
-- [ ] Snippets fieles para los tres servicios y sin secretos.
-- [ ] Estados 428/401/429/5xx, timeout, aborto y contenido bloqueado.
-- [ ] Navegación solo teclado, lector de pantalla y reduced motion.
+- [x] Flujo mock completo de imagen, edición y vídeo.
+- [x] Ejemplo → edición → resultado → descarga → historial.
+- [x] URL → hidratación → cambio → back/forward → copy.
+- [x] Snippets fieles para los tres servicios y sin secretos.
+- [x] Estados 428/401/429/5xx, timeout, aborto y contenido bloqueado.
+- [x] Navegación solo teclado, lector de pantalla y reduced motion.
 - [ ] Smoke live opt-in con key personal: una edición económica y un Veo Lite 4 s/720p,
       mostrando estimación antes de confirmar.
+
+No existe harness E2E en el repositorio, por lo que no se añade un framework en esta fase. El
+smoke manual mock y el procedimiento live opt-in están en `docs/testing/phase-c-smoke.md`. La
+ejecución live sigue bloqueada hasta recibir autorización explícita para USD 0.0336 + USD 0.20.
 
 **Commit:** `test: cubre flujos completos de fase c`
 
@@ -348,11 +357,11 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Enmendar la spec con ejecución dual, coste real y límites de vídeo.
-- [ ] Documentar configuración de key/billing sin publicar ninguna key.
-- [ ] Actualizar OpenAPI y verificarlo contra los schemas runtime.
-- [ ] Documentar privacidad: qué sale del navegador, qué no se persiste y cómo borrar la key.
-- [ ] Ejecutar suite completa y smoke de producción local; anotar comandos y resultados.
+- [x] Enmendar la spec con ejecución dual, coste real y límites de vídeo.
+- [x] Documentar configuración de key/billing sin publicar ninguna key.
+- [x] Actualizar OpenAPI y verificarlo contra los schemas runtime.
+- [x] Documentar privacidad: qué sale del navegador, qué no se persiste y cómo borrar la key.
+- [x] Ejecutar suite completa y smoke de producción local; anotar comandos y resultados.
 - [ ] Marcar C hecha y dejar D como siguiente acción en roadmap/STATUS.
 
 **Commit:** `docs: cierra fase c`
@@ -368,13 +377,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 ## Definition of Done
 
-- [ ] Los tres servicios funcionan con mock; edición y vídeo Google pasan tests contractuales.
+- [x] Los tres servicios funcionan con mock; edición y vídeo Google pasan tests contractuales.
 - [ ] Al menos un smoke live opt-in de edición y uno de Veo Lite completan con key personal.
-- [ ] Ninguna key, imagen subida o URL sensible aparece en Git, logs, task IDs, share URL,
+- [x] Ninguna key, imagen subida o URL sensible aparece en Git, logs, task IDs, share URL,
       snippets o historial.
-- [ ] Snippets y OpenAPI coinciden con requests reales.
-- [ ] Descargas funcionan y no quedan object URLs vivos.
-- [ ] URL compartida restaura únicamente estado seguro.
-- [ ] Español/inglés en paridad y flujos críticos utilizables solo con teclado.
-- [ ] Lint, format, typecheck, tests y build pasan desde checkout limpio.
-- [ ] `README`, spec, roadmap y `STATUS.md` reflejan el producto real.
+- [x] Snippets y OpenAPI coinciden con requests reales.
+- [x] Descargas funcionan y no quedan object URLs vivos.
+- [x] URL compartida restaura únicamente estado seguro.
+- [x] Español/inglés en paridad y flujos críticos utilizables solo con teclado.
+- [x] Lint, format, typecheck, tests y build pasan desde checkout limpio.
+- [x] `README`, spec, roadmap y `STATUS.md` reflejan el producto real.
