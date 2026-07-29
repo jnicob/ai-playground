@@ -19,6 +19,23 @@ describe('App', () => {
       'aria-current',
       'true',
     );
+    expect(screen.getByRole('button', { name: 'Edit image' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Generate video' })).toBeInTheDocument();
+  });
+
+  it('preserva el prompt al cambiar de servicio y muestra solo campos compatibles', async () => {
+    render(<App service={createMockAdapter({ latencyMs: 0 })} />);
+    await userEvent.type(screen.getByLabelText('Prompt'), 'A paper boat');
+    await userEvent.click(screen.getByRole('button', { name: 'Generate video' }));
+
+    expect(screen.getByLabelText('Prompt')).toHaveValue('A paper boat');
+    expect(screen.getByLabelText('Duration')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Source image')).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Edit image' }));
+    expect(screen.getByLabelText('Prompt')).toHaveValue('A paper boat');
+    expect(screen.getByLabelText('Source image')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Duration')).not.toBeInTheDocument();
   });
 });
 

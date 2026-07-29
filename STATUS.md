@@ -3,8 +3,8 @@
 ## Ahora
 
 Fase C en curso en `feat/phase-c-continuation`, apilada sobre `feat/phase-c` mientras la PR
-#1 siga abierta. C1–C6 completadas: contratos, registry, snippets, edición de imagen, vídeo
-Veo y adaptador dual.
+#1 siga abierta. C1–C7 completadas: contratos, registry, snippets, edición de imagen, vídeo
+Veo, adaptador dual y formulario controlado.
 
 ## Hecho
 
@@ -32,10 +32,13 @@ Veo y adaptador dual.
 - C6: el adaptador `platform` acepta POST 200/202, hace polling desde 10 s con backoff 429
   hasta 30 s y timeout total de 10 min. Una operación aceptada nunca degrada a mock; el vídeo
   se descarga con key a Blob y expone `dispose()` idempotente, con traza redactada.
+- C7: un reducer controlado gobierna servicio, proveedor, modelo y parámetros sin perder
+  campos compatibles. La edición valida tipo/firma/10 MiB, permite preview/reemplazo/borrado;
+  vídeo ofrece aspecto/duración/720p, estimación, confirmación de pago y aviso de cancelación.
 
 ## Siguiente acción
 
-Ejecutar C7: formulario controlado para edición y vídeo, validación y confirmación de coste.
+Ejecutar C8: ejemplos propios precargados por servicio/modelo sin llamadas live.
 
 ## Pendientes del usuario
 

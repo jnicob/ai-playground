@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c-continuation`; C1–C6 completadas. La rama está apilada
+**Status:** En curso en `feat/phase-c-continuation`; C1–C7 completadas. La rama está apilada
 sobre `feat/phase-c` mientras la PR #1 siga abierta.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
@@ -237,13 +237,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Mover el formulario a un reducer controlado con defaults, URL y ejemplos como acciones
+- [x] Mover el formulario a un reducer controlado con defaults, URL y ejemplos como acciones
       explícitas.
-- [ ] Conservar prompt/campos compatibles al cambiar modelo; resetear solo estados inválidos.
-- [ ] Añadir upload con preview, sustitución, borrado, validación y mensajes accesibles.
-- [ ] Añadir duración/resolución/aspecto de vídeo y coste estimado recalculado.
-- [ ] Bloquear Google sin key y pedir confirmación informada antes de una operación de pago.
-- [ ] Avisar que abortar polling no garantiza cancelar ni reembolsar el trabajo del proveedor.
+- [x] Conservar prompt/campos compatibles al cambiar modelo; resetear solo estados inválidos.
+- [x] Añadir upload con preview, sustitución, borrado, validación y mensajes accesibles.
+- [x] Añadir duración/resolución/aspecto de vídeo y coste estimado recalculado.
+- [x] Bloquear Google sin key y pedir confirmación informada antes de una operación de pago.
+- [x] Avisar que abortar polling no garantiza cancelar ni reembolsar el trabajo del proveedor.
 
 **Commit:** `feat: añade formulario de edición y vídeo`
 

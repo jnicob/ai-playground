@@ -1,17 +1,16 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useReducer, useRef } from 'react';
 import { I18nProvider, useI18n } from './i18n/i18n';
 import {
-  SERVICES,
+  SERVICE_CATALOG,
   createGenerationService,
   providerById,
   type GenerationRequest,
   type GenerationService,
-  type PlaygroundMode,
-  type ProviderId,
 } from '@ai-playground/core';
 import type { MessageKey } from './i18n/messages';
 import { ApiKeyPanel } from './ui/api-key-panel';
 import { GenerationForm } from './ui/generation-form';
+import { createGenerationDraft, generationDraftReducer } from './ui/generation-draft';
 import { ProviderSelector } from './ui/provider-selector';
 import { ResultPanel } from './ui/result-panel';
 import { useApiKeys } from './ui/use-api-keys';
@@ -19,27 +18,24 @@ import { useGeneration } from './ui/use-generation';
 
 function Playground({ service }: { service?: GenerationService }) {
   const { t, locale, setLocale } = useI18n();
-  const [activeService, setActiveService] = useState<PlaygroundMode>('generate-image');
-  const [providerId, setProviderId] = useState<ProviderId>('mock');
+  const [draft, dispatch] = useReducer(generationDraftReducer, undefined, createGenerationDraft);
   const { keyFor, setKey, clearKey } = useApiKeys();
   const lastRequest = useRef<GenerationRequest | null>(null);
 
-  const provider = providerById(providerId);
-  const apiKey = keyFor(providerId);
+  const provider = providerById(draft.provider);
+  const apiKey = keyFor(draft.provider);
   const needsKey = provider.auth === 'api-key' && !apiKey;
   const activeGenerationService = useMemo(
     () =>
       service ??
-      createGenerationService(providerId, {
+      createGenerationService(draft.provider, {
         apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8787',
-        getApiKey: () => keyFor(providerId),
+        getApiKey: () => keyFor(draft.provider),
       }),
-    [service, providerId, keyFor],
+    [service, draft.provider, keyFor],
   );
 
   const { state, generate } = useGeneration(activeGenerationService);
-  const serviceDef = SERVICES.find((s) => s.id === activeService) ?? SERVICES[0]!;
-
   function handleGenerate(request: GenerationRequest) {
     lastRequest.current = request;
     generate(request);
@@ -72,31 +68,36 @@ function Playground({ service }: { service?: GenerationService }) {
         </div>
       </header>
       <main className="grid gap-6 p-6 lg:grid-cols-[12rem_minmax(20rem,24rem)_1fr]">
-        <nav aria-label="Services" className="flex flex-col gap-1">
-          {SERVICES.map((s) => (
+        <nav aria-label={t('nav.services')} className="flex flex-col gap-1">
+          {SERVICE_CATALOG.map((serviceDefinition) => (
             <button
-              key={s.id}
-              onClick={() => setActiveService(s.id)}
-              aria-current={s.id === activeService ? 'true' : undefined}
+              key={serviceDefinition.id}
+              onClick={() => dispatch({ type: 'select-service', value: serviceDefinition.id })}
+              aria-current={serviceDefinition.id === draft.service ? 'true' : undefined}
               className="rounded-md px-3 py-2 text-left text-sm text-muted aria-[current]:bg-surface aria-[current]:text-fg"
             >
-              {t(s.labelKey as MessageKey)}
+              {t(serviceDefinition.labelKey as MessageKey)}
             </button>
           ))}
         </nav>
         <div className="flex flex-col gap-4">
-          <ProviderSelector value={providerId} onChange={setProviderId} />
+          <ProviderSelector
+            value={draft.provider}
+            service={draft.service}
+            onChange={(value) => dispatch({ type: 'select-provider', value })}
+          />
           {provider.auth === 'api-key' && (
             <ApiKeyPanel
               provider={provider}
               {...(apiKey ? { currentKey: apiKey } : {})}
-              onSave={(key) => setKey(providerId, key)}
-              onClear={() => clearKey(providerId)}
+              onSave={(key) => setKey(draft.provider, key)}
+              onClear={() => clearKey(draft.provider)}
             />
           )}
           <GenerationForm
-            service={serviceDef}
-            provider={provider}
+            key={draft.service}
+            draft={draft}
+            dispatch={dispatch}
             busy={state.status === 'loading'}
             disabled={needsKey}
             onGenerate={handleGenerate}
