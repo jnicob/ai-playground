@@ -55,6 +55,13 @@ describe('ResultPanel', () => {
     wrap({ ...success, result: { ...success.result, degraded: true } });
     expect(screen.getByText('live → mock')).toBeInTheDocument();
   });
+  it('badge live para un resultado real', () => {
+    wrap({
+      ...success,
+      result: { ...success.result, provider: 'pollinations', degraded: false },
+    });
+    expect(screen.getByText('live')).toBeInTheDocument();
+  });
   it('imagen sin width/height (adaptador live que no las conoce): no inventa dimensiones', () => {
     const imageResult = success.result;
     if (imageResult.kind !== 'image') throw new Error('unreachable: fixture debe ser image');

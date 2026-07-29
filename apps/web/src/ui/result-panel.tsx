@@ -63,7 +63,11 @@ export function ResultPanel({ state, onRetry }: Props) {
               />
               <figcaption className="font-mono text-xs text-muted">
                 <span className="rounded-sm border border-border px-1.5 py-0.5">
-                  {result.degraded ? t('result.origin.degraded') : t('result.origin.mock')}
+                  {result.degraded
+                    ? t('result.origin.degraded')
+                    : result.provider === 'mock'
+                      ? t('result.origin.mock')
+                      : t('result.origin.live')}
                 </span>{' '}
                 · {result.elapsedMs} ms
               </figcaption>

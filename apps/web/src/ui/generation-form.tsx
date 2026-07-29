@@ -12,17 +12,19 @@ type Props = {
   service: ServiceDefinition;
   provider: ProviderDefinition;
   busy: boolean;
+  disabled?: boolean;
   onGenerate: (request: GenerationRequest) => void;
 };
 
 const MAX_SEED = 999_999;
 export const randomSeed = () => Math.floor(Math.random() * (MAX_SEED + 1));
 
-export function GenerationForm({ service, provider, busy, onGenerate }: Props) {
+export function GenerationForm({ service, provider, busy, disabled, onGenerate }: Props) {
   const { t } = useI18n();
   const models = provider.models[service.id] ?? [];
   const [prompt, setPrompt] = useState('');
   const [model, setModel] = useState(models[0] ?? '');
+  const validModel = models.includes(model) ? model : (models[0] ?? '');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('square_1_1');
   const [seedInput, setSeedInput] = useState('');
 
@@ -33,7 +35,7 @@ export function GenerationForm({ service, provider, busy, onGenerate }: Props) {
       service: service.id,
       provider: provider.id,
       prompt: prompt.trim(),
-      model,
+      model: validModel,
       aspectRatio,
       seed: seedInput === '' ? randomSeed() : Number(seedInput),
     });
@@ -59,7 +61,7 @@ export function GenerationForm({ service, provider, busy, onGenerate }: Props) {
         </label>
         <select
           id="model"
-          value={model}
+          value={validModel}
           onChange={(e) => setModel(e.target.value)}
           className="rounded-md border border-border bg-surface p-2 text-fg"
         >
@@ -110,8 +112,8 @@ export function GenerationForm({ service, provider, busy, onGenerate }: Props) {
       </div>
       <button
         type="submit"
-        disabled={busy}
-        className="rounded-md bg-accent px-4 py-2 font-medium text-accent-fg disabled:opacity-60"
+        disabled={busy || disabled}
+        className="min-h-11 rounded-md bg-accent px-4 font-medium text-accent-fg disabled:opacity-60"
       >
         {busy ? t('form.generating') : t('form.generate')}
       </button>

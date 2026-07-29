@@ -55,4 +55,33 @@ describe('GenerationForm', () => {
     );
     expect(screen.getByRole('button', { name: 'Generating…' })).toBeDisabled();
   });
+
+  it('usa el primer modelo válido cuando cambia el proveedor', async () => {
+    const onGenerate = vi.fn<(request: GenerationRequest) => void>();
+    const { rerender } = wrap(
+      <GenerationForm service={service} provider={provider} busy={false} onGenerate={onGenerate} />,
+    );
+    await userEvent.selectOptions(screen.getByLabelText('Model'), 'turbo');
+
+    rerender(
+      <I18nProvider>
+        <GenerationForm
+          service={service}
+          provider={PROVIDERS[2]!}
+          busy={false}
+          onGenerate={onGenerate}
+        />
+      </I18nProvider>,
+    );
+
+    expect(screen.getByLabelText('Model')).toHaveValue('gemini-2.5-flash-image');
+    await userEvent.type(screen.getByLabelText('Prompt'), 'a red fox');
+    await userEvent.click(screen.getByRole('button', { name: 'Generate' }));
+    expect(onGenerate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'google',
+        model: 'gemini-2.5-flash-image',
+      }),
+    );
+  });
 });
