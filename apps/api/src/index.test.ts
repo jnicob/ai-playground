@@ -119,6 +119,28 @@ describe('GET /v1/tasks/:taskId', () => {
     expect(typeof json.elapsed_ms).toBe('number');
   });
 
+  it('invoca el fetch global con el contexto requerido por Cloudflare Workers', async () => {
+    const fetchMock = vi.fn(function (this: unknown) {
+      if (this !== globalThis) {
+        throw new TypeError('Illegal invocation');
+      }
+      return Promise.resolve(
+        new Response(new Uint8Array([1]), {
+          status: 200,
+          headers: { 'content-type': 'image/jpeg' },
+        }),
+      );
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const res = await app.request(`/v1/tasks/${encodeTaskId(request)}`);
+
+    expect(await res.json()).toMatchObject({
+      status: 'COMPLETED',
+      provider: 'pollinations',
+    });
+  });
+
   it('devuelve FAILED con el código mapeado cuando el proveedor falla', async () => {
     vi.stubGlobal(
       'fetch',

@@ -94,7 +94,7 @@ app.get('/v1/tasks/:taskId', async (c) => {
   try {
     const connector = connectorFor(request.provider);
     const output = await connector(request, {
-      fetchImpl: fetch,
+      fetchImpl: globalThis.fetch.bind(globalThis),
       ...(apiKey ? { apiKey } : {}),
     });
     return c.json({
