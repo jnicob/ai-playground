@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generationRequestSchema, PROVIDERS, SERVICES } from './registry';
+import { generationRequestSchema, PROVIDERS, SERVICES, modelsFor, providerById } from './registry';
 import { ASPECT_RATIOS } from './types';
 
 const valid = {
@@ -34,5 +34,47 @@ describe('registry', () => {
       expect(dims.width).toBeGreaterThan(0);
       expect(dims.height).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('registry live', () => {
+  it('declara los tres proveedores con su auth', () => {
+    expect(PROVIDERS.map((p) => [p.id, p.auth])).toEqual([
+      ['mock', 'none'],
+      ['pollinations', 'none'],
+      ['google', 'api-key'],
+    ]);
+  });
+
+  it('solo google avisa de coste', () => {
+    expect(PROVIDERS.filter((p) => p.costWarning).map((p) => p.id)).toEqual(['google']);
+  });
+
+  it('todo proveedor declara al menos un modelo de generate-image', () => {
+    for (const p of PROVIDERS) expect(modelsFor(p.id, 'generate-image').length).toBeGreaterThan(0);
+  });
+
+  it('acepta requests de proveedores live', () => {
+    const base = {
+      service: 'generate-image',
+      prompt: 'a red fox',
+      aspectRatio: 'square_1_1',
+      seed: 7,
+    };
+    expect(
+      generationRequestSchema.safeParse({ ...base, provider: 'pollinations', model: 'flux' })
+        .success,
+    ).toBe(true);
+    expect(
+      generationRequestSchema.safeParse({
+        ...base,
+        provider: 'google',
+        model: 'gemini-2.5-flash-image',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('providerById lanza para un proveedor desconocido', () => {
+    expect(() => providerById('nope' as never)).toThrow(/unknown provider/i);
   });
 });
