@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c`; C1–C3 completadas.
+**Status:** En curso en `feat/phase-c`; C1–C4 completadas.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -168,13 +168,13 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Resolver conectores por `(provider, service)`, no solo por proveedor.
-- [ ] Validar MIME declarado, firma mágica y límite de 10 MB antes de llamar a Google.
-- [ ] Enviar texto + imagen inline y mapear la respuesta a `image-pair`.
-- [ ] Ejecutar edición en POST y devolver `200 COMPLETED`; no crear `task_id` con el upload.
-- [ ] Sanear/truncar errores externos, redactando key, base64 y URLs sensibles.
-- [ ] Documentar request multipart o JSON base64 — elegir una sola forma tras un test de
-      compatibilidad con Workers; preferir multipart si no complica el contrato compartido.
+- [x] Resolver conectores por `(provider, service)`, no solo por proveedor.
+- [x] Validar MIME declarado, firma mágica y límite de 10 MB antes de llamar a Google.
+- [x] Enviar texto + imagen inline y mapear la respuesta a `image-pair`.
+- [x] Ejecutar edición en POST y devolver `200 COMPLETED`; no crear `task_id` con el upload.
+- [x] Sanear/truncar errores externos, redactando key, base64 y URLs sensibles.
+- [x] Documentar request multipart o JSON base64 — elegido JSON base64 por compartir
+      contrato canónico entre Worker, adaptador y snippets sin un segundo serializer.
 
 **Commit:** `feat: añade edición de imagen con google`
 

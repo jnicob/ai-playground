@@ -2,8 +2,8 @@
 
 ## Ahora
 
-Fase C en curso en `feat/phase-c`. C1–C3 completadas: contratos, registry y requests
-canónicas con snippets cURL/JavaScript/Python seguros en la pestaña API.
+Fase C en curso en `feat/phase-c`. C1–C4 completadas: contratos, registry, snippets y
+edición de imagen Google síncrona con upload validado.
 
 ## Hecho
 
@@ -15,17 +15,19 @@ canónicas con snippets cURL/JavaScript/Python seguros en la pestaña API.
   badge de origen y traza real.
 - E2E real: Worker local → Pollinations `COMPLETED`; Chromium mostró imagen 1024×1024,
   badge `live` y POST/poll/`COMPLETED` en la pestaña API.
-- Verificación fresca: lint, format, typecheck, 197 tests y build completos en verde.
+- Verificación fresca: lint, format, typecheck, 208 tests y build completos en verde.
 - C1: contratos discriminados y estrictos; el upload solo existe en dominio efímero y
   `task_id` v2 admite únicamente referencias Veo validadas, sin keys ni medios.
 - C2: catálogo por proveedor/servicio, Google 3.1 Image y Veo Lite/Fast/Standard con
   restricciones 720p y pricing verificado; mock propio para edición y vídeo.
 - C3: payload HTTP compartido por adaptador/snippets, redacción de uploads y código
   ejecutable con polling/descarga, selector accesible y copy feedback.
+- C4: conector Google por servicio, PNG/JPEG/WebP base64 hasta 10 MiB con firma mágica,
+  output externo validado y respuesta `200 COMPLETED` sin serializar el upload en task ID.
 
 ## Siguiente acción
 
-Ejecutar C4: edición de imagen Google síncrona con validación de upload y errores seguros.
+Ejecutar C5: Veo long-running, `task_id` v2, polling y descarga autenticada segura.
 
 ## Pendientes del usuario
 
