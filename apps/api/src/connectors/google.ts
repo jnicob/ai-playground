@@ -1,9 +1,10 @@
-import { PlatformError, type TaskOutput } from '@ai-playground/core';
+import { PlatformError, type AspectRatio, type TaskOutput } from '@ai-playground/core';
 import type { Connector } from './types';
+import { sanitizeUpstreamMessage } from './sanitize';
 
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-const ASPECT_HINT: Record<string, string> = {
+const ASPECT_HINT: Record<AspectRatio, string> = {
   square_1_1: 'square 1:1 framing',
   widescreen_16_9: 'widescreen 16:9 framing',
   vertical_9_16: 'vertical 9:16 framing',
@@ -35,7 +36,7 @@ export const googleConnector: Connector = async (request, ctx) => {
     candidates?: { content?: { parts?: GooglePart[] } }[];
   };
 
-  if (!response.ok) throw mapGoogleError(response.status, payload);
+  if (!response.ok) throw mapGoogleError(response.status, payload, ctx.apiKey);
 
   const inline = payload.candidates?.[0]?.content?.parts?.find(
     (part) => part.inlineData?.data,
@@ -54,8 +55,9 @@ export const googleConnector: Connector = async (request, ctx) => {
 function mapGoogleError(
   status: number,
   payload: { error?: { message?: string; details?: { reason?: string }[] } },
+  apiKey: string | undefined,
 ): PlatformError {
-  const message = payload.error?.message ?? `Google responded with ${status}`;
+  const message = sanitizeUpstreamMessage(payload.error?.message, apiKey, 'Google request failed');
   if (status === 429) return new PlatformError('rate_limited', message);
   if (status === 403) return new PlatformError('invalid_api_key', message);
   if (status === 400) {

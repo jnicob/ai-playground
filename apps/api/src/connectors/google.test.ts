@@ -84,6 +84,34 @@ describe('conector google', () => {
     ).rejects.toMatchObject({ code: 'invalid_api_key' });
   });
 
+  it('nunca filtra la key en el mensaje de error aunque el upstream la refleje', async () => {
+    const secret = 'my-secret-key';
+    const fetchImpl = vi.fn(async () =>
+      json(
+        {
+          error: {
+            code: 400,
+            message: `API key not valid: ${secret}`,
+            status: 'INVALID_ARGUMENT',
+            details: [{ reason: 'API_KEY_INVALID' }],
+          },
+        },
+        400,
+      ),
+    );
+    let thrown: unknown;
+    try {
+      await googleConnector(request, {
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        apiKey: secret,
+      });
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toMatchObject({ code: 'invalid_api_key' });
+    expect((thrown as { message: string }).message).not.toContain(secret);
+  });
+
   it.each([
     [403, {}, 'invalid_api_key'],
     [429, {}, 'rate_limited'],
