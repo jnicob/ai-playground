@@ -1,16 +1,5 @@
-/// <reference types="node" />
-// @vitest-environment node
-//
-// Bajo el entorno jsdom por defecto, Vite 8 aplica su transform de
-// `new URL(literal, import.meta.url)` (pensado para assets de cliente) también
-// al módulo de este test, reescribiendo la URL relativa a `http://localhost:*`
-// en vez de dejarla como `file://`, lo que rompe `readFileSync`. Este test no
-// usa el DOM: forzar el entorno `node` por fichero evita esa reescritura y
-// deja intacta la lectura de globals.css tal y como asume el test.
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-
-const css = readFileSync(new URL('./globals.css', import.meta.url), 'utf8');
+import css from './globals.css?raw';
 
 function tokensOf(theme: 'dark' | 'light'): Record<string, string> {
   const block =
