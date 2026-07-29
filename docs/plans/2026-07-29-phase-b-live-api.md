@@ -4,6 +4,8 @@
 
 **Goal:** Convertir el walking skeleton en un playground real: una API propia task-based (`POST /v1/services/{service}` → `task_id` → `GET /v1/tasks/{id}`) con spec OpenAPI publicada, conectores server-side a dos proveedores reales (pollinations sin key, google con key del usuario), adaptador `platform` client-side que la consume con polling y traza real, y panel de API keys pass-through.
 
+**Status:** Completado y verificado el 2026-07-29. Cierre en `STATUS.md`.
+
 **Architecture:** La API (Hono sobre Cloudflare Workers) es **stateless**: el `task_id` es la request canónica codificada en base64url (`v1.<payload>`), así que `GET /v1/tasks/{id}` la decodifica y ejecuta el conector en ese momento. Sin KV, sin Durable Objects, coste ≈ 0 € y todo `task_id` es determinista y reproducible (habilita share-by-URL en fase C). La key del usuario viaja por header `x-provider-key` en cada request, nunca se almacena server-side ni entra en el `task_id`. El contrato HTTP vive en `packages/core` (snake_case) y lo comparten API y web; el dominio TS sigue en camelCase.
 
 **Tech Stack:** Hono 4 + Wrangler (Workers) · Zod 4 · React 19 + Vite 8 · Vitest 4 + Testing Library · TypeScript strict.
@@ -74,7 +76,7 @@ apps/web/src/
 - Produces (lo usan Tasks 3–8): `encodeTaskId(request): string`, `decodeTaskId(id): GenerationRequest` (lanza `PlatformError` con code `invalid_request` si no es válido), tipos `ApiErrorCode`, `ApiErrorBody`, `TaskOutput`, `TaskResponse`, schema `taskResponseSchema`, constante `API_KEY_HEADER = 'x-provider-key'`, clase `PlatformError` y `isFatalPlatformError`.
 - Modifica: `GenerationResult` variante `image` pasa a `{ kind: 'image'; url: string; width?: number; height?: number }`.
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 `packages/core/src/api-contract.test.ts`:
 
@@ -192,12 +194,12 @@ describe('errores de plataforma', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar el test y verificar que falla**
+- [x] **Step 2: Ejecutar el test y verificar que falla**
 
 Run: `pnpm --filter @ai-playground/core run test -- api-contract`
 Expected: FAIL — `Cannot find module './api-contract'`.
 
-- [ ] **Step 3: Implementar errores**
+- [x] **Step 3: Implementar errores**
 
 `packages/core/src/errors.ts`:
 
@@ -239,7 +241,7 @@ export function isFatalPlatformError(error: unknown): boolean {
 }
 ```
 
-- [ ] **Step 4: Implementar el contrato**
+- [x] **Step 4: Implementar el contrato**
 
 `packages/core/src/api-contract.ts`:
 
@@ -340,7 +342,7 @@ export type TaskResponse = z.infer<typeof taskResponseSchema>;
 export type ApiErrorBody = { error: z.infer<typeof apiErrorSchema> };
 ```
 
-- [ ] **Step 5: Hacer opcionales las dimensiones del resultado image**
+- [x] **Step 5: Hacer opcionales las dimensiones del resultado image**
 
 En `packages/core/src/types.ts`, sustituir la variante `image` de `GenerationResult`:
 
@@ -357,7 +359,7 @@ export * from './api-contract';
 export * from './errors';
 ```
 
-- [ ] **Step 6: Verificar verde y commitear**
+- [x] **Step 6: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/core run test -- api-contract` → Expected: PASS (14 tests).
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test` → verde.
@@ -380,7 +382,7 @@ git add -A && git commit -m "feat(core): contrato de la API task-based, codec de
 - Consumes: `PlaygroundMode`, `ProviderId` de `types.ts`.
 - Produces: `PROVIDERS` con `mock` (2 modelos), `pollinations` (`flux`, `turbo`) y `google` (`gemini-2.5-flash-image`, `gemini-3.1-flash-image`), cada uno con `auth` y `costWarning: boolean`; `generationRequestSchema` con `provider: z.enum([...])` y `service: z.enum([...])` derivados del registry; `modelsFor(provider, service): readonly string[]`; `providerById(id): ProviderDefinition`.
 
-- [ ] **Step 1: Añadir los tests que fallan**
+- [x] **Step 1: Añadir los tests que fallan**
 
 Añadir al final de `packages/core/src/registry.test.ts` (dejando intactos los tests existentes) y actualizar el import de la primera línea a `import { generationRequestSchema, PROVIDERS, SERVICES, modelsFor, providerById } from './registry';`:
 
@@ -428,12 +430,12 @@ describe('registry live', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/core run test -- registry`
 Expected: FAIL — `modelsFor is not a function` / solo hay un proveedor.
 
-- [ ] **Step 3: Implementar el registry**
+- [x] **Step 3: Implementar el registry**
 
 Sustituir el contenido de `packages/core/src/registry.ts`:
 
@@ -501,7 +503,7 @@ export const generationRequestSchema = z.object({
 });
 ```
 
-- [ ] **Step 4: Verificar verde y commitear**
+- [x] **Step 4: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/core run test` → Expected: PASS (los tests previos del registry siguen verdes: el fixture `provider: 'unknown'` sigue siendo rechazado por el enum).
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test` → verde.
@@ -530,7 +532,7 @@ git add -A && git commit -m "feat(core): registry con proveedores pollinations y
 pnpm --filter @ai-playground/api add @ai-playground/core@workspace:*
 ```
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 `apps/api/src/connectors/pollinations.test.ts`:
 
@@ -624,12 +626,12 @@ describe('conector pollinations', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/api run test -- pollinations`
 Expected: FAIL — `Cannot find module './pollinations'`.
 
-- [ ] **Step 3: Implementar tipos y conector**
+- [x] **Step 3: Implementar tipos y conector**
 
 `apps/api/src/connectors/types.ts`:
 
@@ -686,7 +688,7 @@ export const pollinationsConnector: Connector = async (request, ctx) => {
 };
 ```
 
-- [ ] **Step 4: Verificar verde y commitear**
+- [x] **Step 4: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/api run test -- pollinations` → Expected: PASS (7 tests).
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test` → verde.
@@ -709,7 +711,7 @@ git add -A && git commit -m "feat(api): conector server-side de pollinations con
 - Consumes: `Connector`, `ConnectorContext` de Task 3.
 - Produces: `googleConnector`; `CONNECTORS: Partial<Record<ProviderId, Connector>>` y `connectorFor(provider): Connector` (lanza `PlatformError('unsupported_provider')`).
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 `apps/api/src/connectors/google.test.ts`:
 
@@ -833,12 +835,12 @@ describe('registro de conectores', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/api run test -- google`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Implementar el conector**
+- [x] **Step 3: Implementar el conector**
 
 `apps/api/src/connectors/google.ts`:
 
@@ -936,7 +938,7 @@ export function connectorFor(provider: ProviderId): Connector {
 export type { Connector, ConnectorContext } from './types';
 ```
 
-- [ ] **Step 4: Verificar verde y commitear**
+- [x] **Step 4: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/api run test` → Expected: PASS.
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test && pnpm run build` → verde.
@@ -960,7 +962,7 @@ git add -A && git commit -m "feat(api): conector server-side de google con key p
 - Consumes: `connectorFor` (Task 4), `decodeTaskId`/`encodeTaskId`/`generationRequestSchema`/`API_KEY_HEADER` (Tasks 1–2).
 - Produces: `POST /v1/services/:service` → `202 { task_id, status: 'IN_PROGRESS' }`; `GET /v1/tasks/:taskId` → `200 { task_id, status: 'COMPLETED'|'FAILED', … }`; `GET /openapi.json`; CORS con `x-provider-key` permitido.
 
-- [ ] **Step 1: Añadir los tests que fallan**
+- [x] **Step 1: Añadir los tests que fallan**
 
 Sustituir el contenido de `apps/api/src/index.test.ts` (conservando los dos tests de `/health`):
 
@@ -1160,12 +1162,12 @@ describe('CORS y OpenAPI', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/api run test`
 Expected: FAIL — las rutas `/v1/...` responden 404.
 
-- [ ] **Step 3: Implementar la spec OpenAPI**
+- [x] **Step 3: Implementar la spec OpenAPI**
 
 `apps/api/src/openapi.ts`:
 
@@ -1320,7 +1322,7 @@ export const openApiDocument = {
 } as const;
 ```
 
-- [ ] **Step 4: Implementar las rutas**
+- [x] **Step 4: Implementar las rutas**
 
 Sustituir el contenido de `apps/api/src/index.ts`:
 
@@ -1443,7 +1445,7 @@ app.get('/v1/tasks/:taskId', async (c) => {
 export default app;
 ```
 
-- [ ] **Step 5: Verificar verde y commitear**
+- [x] **Step 5: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/api run test` → Expected: PASS (todos).
 Run: `pnpm --filter @ai-playground/api run build` → Expected: dry-run de wrangler OK.
@@ -1471,7 +1473,7 @@ git add -A && git commit -m "feat(api): endpoints task-based, CORS y spec OpenAP
   `PlatformAdapterOptions = { apiBaseUrl: string; getApiKey?: () => string | undefined; fetchImpl?: typeof fetch; pollIntervalMs?: number; maxPollMs?: number }`;
   `createGenerationService(provider, options?: { apiBaseUrl?: string; getApiKey?: () => string | undefined })`.
 
-- [ ] **Step 1: Escribir el test que falla**
+- [x] **Step 1: Escribir el test que falla**
 
 `packages/core/src/adapters/platform.test.ts`:
 
@@ -1650,12 +1652,12 @@ describe('createGenerationService con proveedores live', () => {
 
 (el test existente `rechaza proveedores aún no implementados` deja de aplicar a pollinations/google: sustituirlo por uno que verifique que `createGenerationService('mock')` sigue devolviendo el adaptador mock.)
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/core run test -- platform`
 Expected: FAIL — `Cannot find module './platform'`.
 
-- [ ] **Step 3: Implementar el adaptador**
+- [x] **Step 3: Implementar el adaptador**
 
 `packages/core/src/adapters/platform.ts`:
 
@@ -1777,7 +1779,7 @@ export function createPlatformAdapter(options: PlatformAdapterOptions): Generati
 }
 ```
 
-- [ ] **Step 4: No degradar ante errores fatales**
+- [x] **Step 4: No degradar ante errores fatales**
 
 En `packages/core/src/with-mock-fallback.ts`, dentro del `catch`, antes de llamar al mock, añadir la guarda (y su import):
 
@@ -1794,7 +1796,7 @@ import { isFatalPlatformError } from './errors';
       } finally {
 ```
 
-- [ ] **Step 5: Actualizar la factory**
+- [x] **Step 5: Actualizar la factory**
 
 Sustituir `packages/core/src/factory.ts`:
 
@@ -1834,7 +1836,7 @@ export { createPlatformAdapter, type PlatformAdapterOptions } from './adapters/p
 export type { GenerationServiceOptions } from './factory';
 ```
 
-- [ ] **Step 6: Verificar verde y commitear**
+- [x] **Step 6: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/core run test` → Expected: PASS (los 4 tests previos de `withMockFallback` siguen verdes: sus errores son `Error` plano, no fatales).
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test` → verde.
@@ -1858,7 +1860,7 @@ git add -A && git commit -m "feat(core): adaptador platform con polling, traza r
 - Produces: `useApiKeys(): { keyFor(provider: ProviderId): string | undefined; setKey(provider: ProviderId, key: string): void; clearKey(provider: ProviderId): void }` (persistencia en `sessionStorage`, clave `ai-playground:key:<provider>`); `<ApiKeyPanel provider onSave onClear currentKey />`.
 - Claves i18n nuevas (ambos idiomas): `key.title`, `key.description`, `key.input`, `key.save`, `key.clear`, `key.saved`, `key.cost.warning`, `provider.label`, `provider.auth.none`, `provider.auth.key`, `result.origin.live`.
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 `apps/web/src/ui/use-api-keys.test.ts`:
 
@@ -1973,12 +1975,12 @@ describe('ApiKeyPanel', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/web run test -- api-key`
 Expected: FAIL — módulos inexistentes.
 
-- [ ] **Step 3: Añadir las claves i18n**
+- [x] **Step 3: Añadir las claves i18n**
 
 En `apps/web/src/i18n/messages.ts`, añadir a `en`:
 
@@ -2012,7 +2014,7 @@ y a `es`:
     'result.origin.live': 'live',
 ```
 
-- [ ] **Step 4: Implementar el hook**
+- [x] **Step 4: Implementar el hook**
 
 `apps/web/src/ui/use-api-keys.ts`:
 
@@ -2060,7 +2062,7 @@ export function useApiKeys() {
 }
 ```
 
-- [ ] **Step 5: Implementar el panel**
+- [x] **Step 5: Implementar el panel**
 
 `apps/web/src/ui/api-key-panel.tsx`:
 
@@ -2133,7 +2135,7 @@ export function ApiKeyPanel({ provider, currentKey, onSave, onClear }: Props) {
 }
 ```
 
-- [ ] **Step 6: Verificar verde y commitear**
+- [x] **Step 6: Verificar verde y commitear**
 
 Run: `pnpm --filter @ai-playground/web run test -- api-key` → Expected: PASS (12 tests).
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test` → verde.
@@ -2157,7 +2159,7 @@ git add -A && git commit -m "feat(web): panel de API keys pass-through en sessio
 - Consumes: `useApiKeys`, `ApiKeyPanel` (Task 7), `createGenerationService` con opciones (Task 6), `modelsFor`/`providerById` (Task 2).
 - Produces: `<ProviderSelector value onChange />`; App con estado de proveedor, panel de key condicional y badge de origen `mock | live | live → mock`.
 
-- [ ] **Step 1: Escribir los tests que fallan**
+- [x] **Step 1: Escribir los tests que fallan**
 
 `apps/web/src/ui/provider-selector.test.tsx`:
 
@@ -2224,12 +2226,12 @@ describe('App con proveedores live', () => {
 });
 ```
 
-- [ ] **Step 2: Ejecutar y verificar rojo**
+- [x] **Step 2: Ejecutar y verificar rojo**
 
 Run: `pnpm --filter @ai-playground/web run test -- "provider-selector|app"`
 Expected: FAIL — no existe el selector.
 
-- [ ] **Step 3: Implementar el selector**
+- [x] **Step 3: Implementar el selector**
 
 `apps/web/src/ui/provider-selector.tsx`:
 
@@ -2268,7 +2270,7 @@ export function ProviderSelector({ value, onChange }: Props) {
 }
 ```
 
-- [ ] **Step 4: Aceptar modelos y bloqueo en el formulario**
+- [x] **Step 4: Aceptar modelos y bloqueo en el formulario**
 
 En `apps/web/src/ui/generation-form.tsx`: añadir `disabled?: boolean` a `Props`, resetear el modelo cuando cambian los del proveedor y deshabilitar el submit:
 
@@ -2300,7 +2302,7 @@ usar `validModel` en el `value` del `<select id="model">` y en el payload de `on
       >
 ```
 
-- [ ] **Step 5: Mostrar el origen live y dimensiones honestas**
+- [x] **Step 5: Mostrar el origen live y dimensiones honestas**
 
 En `apps/web/src/ui/result-panel.tsx`, sustituir el `<img>` y el badge del `figcaption`:
 
@@ -2324,7 +2326,7 @@ En `apps/web/src/ui/result-panel.tsx`, sustituir el `<img>` y el badge del `figc
                 </span>{' '}
 ```
 
-- [ ] **Step 6: Integrar en la App**
+- [x] **Step 6: Integrar en la App**
 
 En `apps/web/src/app.tsx`, sustituir el componente `Playground` y el default export:
 
@@ -2462,12 +2464,12 @@ Crear `apps/web/.env.example`:
 VITE_API_BASE_URL=http://localhost:8787
 ```
 
-- [ ] **Step 7: Verificar verde**
+- [x] **Step 7: Verificar verde**
 
 Run: `pnpm --filter @ai-playground/web run test` → Expected: PASS (todos, incluidos los de fase A).
 Run: `pnpm run lint && pnpm run format && pnpm run typecheck && pnpm run test && pnpm run build` → verde.
 
-- [ ] **Step 8: Verificación end-to-end real contra la API**
+- [x] **Step 8: Verificación end-to-end real contra la API**
 
 En dos terminales (o en background):
 
@@ -2490,7 +2492,7 @@ curl -s "http://localhost:8787/v1/tasks/<task_id_de_arriba>"
 
 En el navegador (`http://localhost:5199`): elegir proveedor `pollinations`, escribir un prompt, Generate → debe aparecer una imagen REAL generada, badge `live`, y la pestaña API debe mostrar la traza con las URLs reales de la API propia. Elegir `google` sin key → botón Generate deshabilitado y panel de key con aviso de coste. Cerrar ambos servidores al terminar.
 
-- [ ] **Step 9: Commitear**
+- [x] **Step 9: Commitear**
 
 ```bash
 git add -A && git commit -m "feat(web): selector de proveedor, panel de key integrado y badge de origen live"
@@ -2506,7 +2508,7 @@ git add -A && git commit -m "feat(web): selector de proveedor, panel de key inte
 
 **Interfaces:** ninguna (documentación).
 
-- [ ] **Step 1: Enmendar la spec con lo verificado**
+- [x] **Step 1: Enmendar la spec con lo verificado**
 
 En `docs/specs/2026-07-24-ai-playground-design.md`, añadir al final una sección:
 
@@ -2529,7 +2531,7 @@ En `docs/specs/2026-07-24-ai-playground-design.md`, añadir al final una secció
   es determinista y reproducible.
 ```
 
-- [ ] **Step 2: Actualizar el roadmap**
+- [x] **Step 2: Actualizar el roadmap**
 
 En `docs/plans/2026-07-24-product-roadmap.md`, marcar B como `hecha` y sustituir las filas C y D por:
 
@@ -2538,7 +2540,7 @@ En `docs/plans/2026-07-24-product-roadmap.md`, marcar B como `hecha` y sustituir
 | D | Polish: a11y (axe), QA, presupuesto de bundle, deploy (Pages + Workers) e integración como caso de estudio | pendiente | C |
 ```
 
-- [ ] **Step 3: Actualizar el README**
+- [x] **Step 3: Actualizar el README**
 
 En `README.md`, sustituir la sección de features actuales por el estado real e incluir la API:
 
@@ -2567,11 +2569,11 @@ pnpm --filter @ai-playground/web run dev   # set VITE_API_BASE_URL if the API is
 
 ````
 
-- [ ] **Step 4: Actualizar la skill adding-a-provider**
+- [x] **Step 4: Actualizar la skill adding-a-provider**
 
 En `skills/adding-a-provider/SKILL.md`, actualizar el checklist para reflejar la realidad de fase B: (1) añadir la `ProviderDefinition` al registry con `auth` y `costWarning` y su catálogo de modelos **verificado con curl** (documentar fecha y comando); (2) crear el conector en `apps/api/src/connectors/<provider>.ts` implementando `Connector`, honrando el `AbortSignal` y mapeando errores a `ApiErrorCode`; (3) registrarlo en `apps/api/src/connectors/index.ts`; (4) tests del conector contra `fetch` mockeado (URL/payload, cada código de error, caso de bloqueo); (5) si `auth: 'api-key'`, verificar que la key llega por `API_KEY_HEADER` y **no** aparece en URL ni en la respuesta; (6) actualizar la spec OpenAPI (`apps/api/src/openapi.ts`) con el nuevo valor del enum de `provider`; (7) añadir las claves i18n en ambos idiomas.
 
-- [ ] **Step 5: Actualizar STATUS y commitear**
+- [x] **Step 5: Actualizar STATUS y commitear**
 
 En `STATUS.md`: «Ahora» = fase B completada (API task-based + 2 proveedores live + panel de keys), «Hecho» con el resumen, «Siguiente acción» = plan de fase C just-in-time.
 
