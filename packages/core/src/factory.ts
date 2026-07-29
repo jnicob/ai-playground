@@ -3,6 +3,8 @@ import { createPlatformAdapter } from './adapters/platform';
 import { withMockFallback } from './with-mock-fallback';
 import type { GenerationService, ProviderId } from './types';
 
+const PLATFORM_FALLBACK_TIMEOUT_MS = 120_000;
+
 export type GenerationServiceOptions = {
   apiBaseUrl?: string;
   getApiKey?: () => string | undefined;
@@ -22,5 +24,5 @@ export function createGenerationService(
     apiBaseUrl: options.apiBaseUrl,
     ...(options.getApiKey ? { getApiKey: options.getApiKey } : {}),
   });
-  return withMockFallback(live, createMockAdapter());
+  return withMockFallback(live, createMockAdapter(), PLATFORM_FALLBACK_TIMEOUT_MS);
 }
