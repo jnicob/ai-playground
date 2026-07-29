@@ -4,7 +4,7 @@
 estado compartible por URL, snippets cURL/JavaScript/Python, historial de sesión y descarga,
 sin almacenar keys ni medios del usuario.
 
-**Status:** En curso en `feat/phase-c`; C1–C2 completadas.
+**Status:** En curso en `feat/phase-c`; C1–C3 completadas.
 
 **Architecture:** La UI pasa a tener un borrador controlado como fuente única de verdad. La
 API sigue siendo stateless, pero admite dos formas de ejecución: edición de imagen síncrona
@@ -145,12 +145,12 @@ C8 + C9 + C10 ─> C11 integración/E2E ─> C12 documentación/cierre
 
 **Entregables:**
 
-- [ ] Crear una única función que construya método, path, headers y body de cada servicio.
-- [ ] Reutilizarla desde adaptador y generador de snippets para impedir divergencias.
-- [ ] Generar cURL, `fetch` y Python `requests`, incluidos polling y descarga cuando proceda.
-- [ ] Usar placeholders para key e imagen; probar que una key y un base64 centinela jamás
+- [x] Crear una única función que construya método, path, headers y body de cada servicio.
+- [x] Reutilizarla desde adaptador y generador de snippets para impedir divergencias.
+- [x] Generar cURL, `fetch` y Python `requests`, incluidos polling y descarga cuando proceda.
+- [x] Usar placeholders para key e imagen; probar que una key y un base64 centinela jamás
       aparecen en el texto generado.
-- [ ] Añadir selector de lenguaje y botón copiar accesibles en la pestaña API.
+- [x] Añadir selector de lenguaje y botón copiar accesibles en la pestaña API.
 
 **Commit:** `feat: genera snippets desde requests canónicas`
 

@@ -4,6 +4,7 @@ import {
   type GenerationRequest,
   type GenerationService,
 } from '../types';
+import { buildApiTraceRequest } from '../api-request';
 import { MOCK_CATALOG, MOCK_VIDEO_CATALOG } from './mock-catalog';
 
 const DEFAULT_LATENCY_MS = 600;
@@ -31,16 +32,11 @@ function sleep(ms: number, signal?: AbortSignal): Promise<void> {
 
 function buildTrace(req: GenerationRequest, url: string): ApiTraceStep[] {
   const taskId = `task_${req.seed.toString(16).padStart(6, '0')}`;
-  const base = 'https://api.playground.local/v1';
+  const base = 'https://api.playground.local';
   return [
-    {
-      kind: 'request',
-      method: 'POST',
-      url: `${base}/services/${req.service}`,
-      body: { prompt: req.prompt, model: req.model, aspect_ratio: req.aspectRatio, seed: req.seed },
-    },
+    buildApiTraceRequest(req, base),
     { kind: 'status', state: 'IN_PROGRESS', taskId },
-    { kind: 'poll', method: 'GET', url: `${base}/tasks/${taskId}` },
+    { kind: 'poll', method: 'GET', url: `${base}/v1/tasks/${taskId}` },
     { kind: 'completed', response: { task_id: taskId, status: 'COMPLETED', generated: [url] } },
   ];
 }
